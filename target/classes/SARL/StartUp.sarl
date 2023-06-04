@@ -1,0 +1,20 @@
+package SARL
+
+import io.sarl.bootstrap.SRE
+import SARL.agents.VehiculeAgent
+import SARL.agents.geolocation.GeoLocationService
+import SARL.agents.geolocation.mapbox.Node
+import SARL.agents.EnvironmentAgent
+import SARL.map.JXMapViewerExample
+import javax.swing.SwingUtilities
+
+class StartUp {
+	static def main(arguments : String*) {
+		var bootstrap = SRE::getBootstrap
+		var startNode : Node = GeoLocationService.getNearestNode().convertNode();
+		var endNode : Node = GeoLocationService.getRandomNodeFromWayWithinRadius(1000).convertNode();
+		var frame : JXMapViewerExample = new JXMapViewerExample();
+		//bootstrap.startAgent(typeof(VehiculeAgent), startNode, endNode, frame)
+		//bootstrap.startAgent(typeof(EnvironmentAgent))
+	}
+}

@@ -1,0 +1,14 @@
+/** 
+ * 
+ */
+package SARL.agents
+
+/** 
+ * @author ELHAJJOUT
+ * 
+ */
+enum LightStatus {
+	red,
+	green,
+	orange
+}

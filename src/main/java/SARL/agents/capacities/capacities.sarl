@@ -1,0 +1,36 @@
+/** 
+ * 
+ */
+package SARL.agents.capacities
+
+import io.sarl.lang.core.DefaultSkill
+import SARL.agents.MovingSkill
+import SARL.agents.BatterySkill
+import SARL.agents.GetLocationSkill
+import SARL.agents.geolocation.mapbox.Node
+import java.util.List
+
+/** 
+ * @author ELHAJJOUT
+ * 
+ */
+@DefaultSkill(typeof(MovingSkill))
+capacity MovingCapacity {
+	def move(destination : Node)
+	def stop()
+	def wating()
+}
+
+@DefaultSkill(typeof(BatterySkill))
+capacity BatteryCapacity {
+	def chargeBattery()
+
+	def checkBatteryStatus() : double
+}
+
+@DefaultSkill(typeof(GetLocationSkill))
+capacity GetLocation {
+	def getCurrentLocation() : Node	// This will return a pair of latitude and longitude
+	def getRouteToDestination(source : Node, destination : Node): List<Node>
+}
+

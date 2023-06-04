@@ -1,0 +1,16 @@
+/** 
+ * 
+ */
+package SARL.capacities
+
+import SARL.agents.LightStatus
+
+/** 
+ * @author ELHAJJOUT
+ * 
+ */
+capacity LightManagementCapacity {
+	def changeColor(newColor : LightStatus)
+
+	def getStatus() : LightStatus
+}

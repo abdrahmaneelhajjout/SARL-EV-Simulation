@@ -1,0 +1,82 @@
+package SARL.agents
+
+import SARL.agents.VehiculeAgent
+import SARL.agents.capacities.MovingCapacity
+import SARL.agents.capacities.BatteryCapacity
+import SARL.agents.capacities.GetLocation
+import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.geolocation.GeoLocationService
+import java.util.Optional
+import javafx.util.Pair;
+import java.util.List
+import SARL.agents.geolocation.mapbox.RoutingService
+import io.sarl.core.Logging
+
+skill MovingSkill implements MovingCapacity {
+	uses Logging;
+
+	var  owner : VehiculeAgent
+
+	def install {
+		// Initialization of the skill
+		assert getOwner !== null
+		this.owner = getOwner as VehiculeAgent
+
+	}
+
+	override move(currentNode : Node) {
+		if (owner.status == Status.moving) {
+			owner.currentLocation = currentNode
+			owner.frame.changeWaypointMovement(currentNode)
+			info("moved to : " + currentNode);
+		}
+	}
+
+	override stop() {
+		owner.status = Status.stopped;
+		info("stopped");
+	}
+
+	override wating() {
+		owner.status = Status.waiting;
+		info("waiting");
+	}
+}
+
+skill GetLocationSkill implements GetLocation {
+
+	override getCurrentLocation() : Node {
+		var optionalLocation : Optional<Pair<Double, Double>> = GeoLocationService.getCurrentLocationAsPair();
+		var locationPair : Pair<Double, Double> = optionalLocation.orElseThrow([
+			new RuntimeException("Can't get the IP Address, check your connection")
+		]);
+		var current_location_node = new SARL.agents.geolocation.mapbox.Node(locationPair.getKey(),
+			locationPair.getValue());
+		return current_location_node;
+	}
+
+	override getRouteToDestination(source : Node, destination : Node) : List<Node> {
+		var path : List<Node> = RoutingService.getRoute(source, destination);
+		return path;
+	}
+}
+
+skill BatterySkill implements BatteryCapacity {
+	var owner : VehiculeAgent
+
+	def install {
+		// Initialization of the skill
+		assert getOwner !== null
+		this.owner = getOwner as VehiculeAgent
+
+	}
+
+	override chargeBattery() {
+		this.owner.setBatteryLevel(100)
+	}
+
+	override checkBatteryStatus() : double {
+
+		return this.owner.getBatteryLevel();
+	}
+}

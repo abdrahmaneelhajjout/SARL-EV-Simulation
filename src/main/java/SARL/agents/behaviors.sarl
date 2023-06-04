@@ -1,0 +1,55 @@
+package SARL.agents
+
+import SARL.agents.capacities.MovingCapacity
+import SARL.agents.capacities.BatteryCapacity
+import SARL.agents.TimeStep
+import SARL.agents.VehiculeAgent
+import io.sarl.core.Logging
+import static SARL.agents.geolocation.mapbox.NodeUtils.getNodesBetween;
+
+
+// Behavior
+behavior MovingBehavior {
+	uses MovingCapacity, BatteryCapacity
+	uses Logging
+	val owner : VehiculeAgent
+	var currentNodeIndex : int = 0
+	var currentPathIndex : int = 0
+	val distanceBetweenNodes : double = 0.1;
+	new (owner : VehiculeAgent) {
+		super(owner)
+		this.owner = owner
+	}
+	
+	// React to the TimeStep event
+	on TimeStep {
+		// Check battery status
+		if (checkBatteryStatus() < 20) {
+			chargeBattery()
+		} else {
+			if (currentNodeIndex >= owner.subPath.size && currentPathIndex < owner.fullPath.size - 1) {
+				// Fetch subPath between two nodes
+				owner.subPath = getNodesBetween(owner.fullPath.get(currentPathIndex), owner.fullPath.get(currentPathIndex + 1),
+					distanceBetweenNodes)
+				currentNodeIndex = 0
+				currentPathIndex++
+			}
+			if (currentNodeIndex < owner.subPath.size) {
+				// Move to the next node in the subPath
+				owner.status = Status.moving
+				move(owner.subPath.get(currentNodeIndex))
+				currentNodeIndex++
+			} else {
+				info("The agent has reached its destination.")
+				stop()
+			}
+		}
+	}
+	
+	}
+
+
+
+
+
+

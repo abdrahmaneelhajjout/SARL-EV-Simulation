@@ -1,0 +1,14 @@
+/** 
+ * 
+ */
+package SARL.agents
+
+/** 
+ * @author ELHAJJOUT
+ * 
+ */
+enum Status {
+	moving,
+	stopped,
+	waiting
+}
