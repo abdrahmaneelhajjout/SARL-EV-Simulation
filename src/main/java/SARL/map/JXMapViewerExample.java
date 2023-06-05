@@ -40,8 +40,9 @@ public class JXMapViewerExample extends JFrame {
         // create a mapViewer
         mapViewer = new JXMapViewer();
         mapViewer.setTileFactory(tileFactory);
-
         Pair<Double, Double> currentLocation = GeoLocationService.getCurrentLocationAsPair().get();
+        System.out.println(currentLocation);
+
         GeoPosition currentPosition = new GeoPosition(currentLocation.getKey(), currentLocation.getValue());
 
         // Set the initial waypoint
@@ -68,7 +69,7 @@ public class JXMapViewerExample extends JFrame {
 	private void addInteractions() {
 		// Add interactions
 		mapViewer.addMouseListener(new PanMouseInputListener(mapViewer));
-		//mapViewer.addMouseMotionListener(new PanMouseInputListener(mapViewer));
+		mapViewer.addMouseMotionListener(new PanMouseInputListener(mapViewer));
 		mapViewer.addMouseListener(new CenterMapListener(mapViewer));
 		mapViewer.addMouseWheelListener(new ZoomMouseWheelListenerCursor(mapViewer));
 	}

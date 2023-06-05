@@ -9,7 +9,7 @@ import org.jxmapviewer.viewer.GeoPosition;
 
 public class CarWaypoint extends DefaultWaypoint {
 	 private String name;
-	    private ImageIcon icon;
+	  private ImageIcon icon;
 
 	    public CarWaypoint(GeoPosition coord, String name) {
 	        super(coord);
