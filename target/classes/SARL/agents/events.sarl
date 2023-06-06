@@ -1,0 +1,38 @@
+package SARL.agents
+
+import SARL.agents.geolocation.mapbox.Node;
+
+event TimeStep {
+	val step : int // secondes
+
+	new (step : int = 1) {
+		this.step = step
+	}
+}
+
+
+event AgentUpdateEvent {
+	val current_location_node : Node
+	val agentName : String;
+
+	new (current_location_node : Node, agentName : String) {
+		this.current_location_node = current_location_node;
+		this.agentName = agentName;
+		
+	}
+}
+
+
+
+
+event TrafficSignaInitEvent {
+	val location : Node
+	val agentName : String;
+
+	new (location : Node, agentName : String) {
+		this.location = location;
+		this.agentName = agentName;
+		
+	}
+}
+

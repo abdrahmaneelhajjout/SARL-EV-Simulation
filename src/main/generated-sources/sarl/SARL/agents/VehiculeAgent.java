@@ -1,12 +1,12 @@
 package SARL.agents;
 
 import SARL.agents.MovingBehavior;
-import SARL.agents.Status;
+import SARL.agents.TimeStep;
+import SARL.agents.VehiculeStatus;
 import SARL.agents.capacities.GetLocation;
 import SARL.agents.geolocation.mapbox.Node;
 import SARL.agents.geolocation.mapbox.NodeUtils;
 import SARL.agents.geolocation.mapbox.RoutingService;
-import SARL.map.JXMapViewerExample;
 import io.sarl.core.AgentKilled;
 import io.sarl.core.AgentSpawned;
 import io.sarl.core.Behaviors;
@@ -21,13 +21,9 @@ import io.sarl.core.ParticipantJoined;
 import io.sarl.core.ParticipantLeft;
 import io.sarl.core.SpaceCreated;
 import io.sarl.core.SpaceDestroyed;
-import io.sarl.lang.annotation.DefaultValue;
-import io.sarl.lang.annotation.DefaultValueSource;
-import io.sarl.lang.annotation.DefaultValueUse;
 import io.sarl.lang.annotation.ImportedCapacityFeature;
 import io.sarl.lang.annotation.PerceptGuardEvaluator;
 import io.sarl.lang.annotation.SarlElementType;
-import io.sarl.lang.annotation.SarlSourceCode;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
 import io.sarl.lang.core.Agent;
@@ -39,9 +35,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import javafx.util.Pair;
 import javax.inject.Inject;
+import org.eclipse.xtend.lib.annotations.Accessors;
 import org.eclipse.xtext.xbase.lib.Exceptions;
 import org.eclipse.xtext.xbase.lib.Extension;
+import org.eclipse.xtext.xbase.lib.Functions.Function1;
 import org.eclipse.xtext.xbase.lib.Pure;
 
 /**
@@ -51,131 +50,66 @@ import org.eclipse.xtext.xbase.lib.Pure;
 @SarlSpecification("0.12")
 @SarlElementType(19)
 public class VehiculeAgent extends Agent {
+  @Accessors
+  private String agentName;
+  
+  @Accessors
   private Node startNode;
   
+  @Accessors
   private List<Node> fullPath;
   
+  @Accessors
   private List<Node> subPath;
   
+  @Accessors
   private Node currentLocation;
   
-  private String destination;
-  
+  @Accessors
   private Node destinationNode;
   
-  private double speed;
+  @Accessors
+  private double speedKmPerHour;
   
-  private Status status;
+  @Accessors
+  private VehiculeStatus status;
   
+  @Accessors
   private double batteryLevel;
   
-  private JXMapViewerExample frame;
+  private Pair<Node, Node> location_pair;
   
   private void $behaviorUnit$Initialize$0(final Initialize occurrence) {
     try {
       Object _get = occurrence.parameters[0];
-      this.startNode = ((Node) _get);
+      this.agentName = (_get == null ? null : _get.toString());
       Object _get_1 = occurrence.parameters[1];
-      this.destinationNode = ((Node) _get_1);
+      this.location_pair = ((Pair<Node, Node>) _get_1);
       Object _get_2 = occurrence.parameters[2];
-      this.frame = ((JXMapViewerExample) _get_2);
+      this.speedKmPerHour = ((((Double) _get_2)) == null ? 0 : (((Double) _get_2)).doubleValue());
+      this.startNode = this.location_pair.getKey();
+      this.destinationNode = this.location_pair.getValue();
       this.fullPath = RoutingService.getRoute(this.startNode, this.destinationNode);
-      this.subPath = NodeUtils.getNodesBetween(this.fullPath.get(0), this.fullPath.get(1), 0.1);
+      this.subPath = NodeUtils.getNodesBetween(this.fullPath.get(0), this.fullPath.get(1), 1000);
       MovingBehavior moving_behavior = new MovingBehavior(this);
       Behaviors _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER();
-      _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER.registerBehavior(moving_behavior);
+      final Function1<Event, Boolean> _function = (Event event) -> {
+        return Boolean.valueOf((event instanceof TimeStep));
+      };
+      _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER.registerBehavior(moving_behavior, _function);
       Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("The agent was started.");
+      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info((("----------------- " + this.agentName) + " ----------------------"));
       Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1.info(("from " + this.startNode));
+      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1.info("The agent was started.");
       Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2.info(("to " + this.destinationNode));
+      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2.info(("from " + this.startNode));
+      Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3.info(("to " + this.destinationNode));
+      Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_4 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_4.info("------------------------------------------------------------");
     } catch (Throwable _e) {
       throw Exceptions.sneakyThrow(_e);
     }
-  }
-  
-  @Pure
-  protected double getBatteryLevel() {
-    return this.batteryLevel;
-  }
-  
-  @DefaultValueSource
-  protected void setBatteryLevel(@DefaultValue("SARL.agents.VehiculeAgent#SETBATTERYLEVEL_0") final double level) {
-    this.batteryLevel = level;
-  }
-  
-  @Pure
-  protected String getDestination() {
-    return this.destination;
-  }
-  
-  @DefaultValueSource
-  protected void setDestination(@DefaultValue("SARL.agents.VehiculeAgent#SETDESTINATION_0") final double level) {
-    this.batteryLevel = level;
-  }
-  
-  @Pure
-  protected Node getDestinationNode() {
-    return this.destinationNode;
-  }
-  
-  protected void setDestinationNode(final Node node) {
-    this.destinationNode = node;
-  }
-  
-  @Pure
-  protected Node getStartNode() {
-    return this.startNode;
-  }
-  
-  protected void setStartNode(final Node node) {
-    this.startNode = node;
-  }
-  
-  @Pure
-  protected Node getCurrentLocation() {
-    return this.currentLocation;
-  }
-  
-  protected void setCurrentLocation(final Node node) {
-    this.currentLocation = node;
-  }
-  
-  @Pure
-  protected Status getStatus() {
-    return this.status;
-  }
-  
-  protected void setStatus(final Status status) {
-    this.status = status;
-  }
-  
-  @Pure
-  protected List<Node> getFullPath() {
-    return this.fullPath;
-  }
-  
-  protected void setFullPath(final List<Node> fullPath) {
-    this.fullPath = fullPath;
-  }
-  
-  @Pure
-  protected List<Node> getSubPath() {
-    return this.subPath;
-  }
-  
-  protected void setSubPath(final List<Node> subPath) {
-    this.subPath = subPath;
-  }
-  
-  @Pure
-  protected JXMapViewerExample getFrame() {
-    return this.frame;
-  }
-  
-  protected void setFrame(final JXMapViewerExample frame) {
-    this.frame = frame;
   }
   
   private void $behaviorUnit$Destroy$1(final Destroy occurrence) {
@@ -469,38 +403,6 @@ public class VehiculeAgent extends Agent {
     }
   }
   
-  /**
-   * Default value for the parameter level
-   */
-  @Pure
-  @SyntheticMember
-  @SarlSourceCode("100")
-  private final double $DEFAULT_VALUE$SETBATTERYLEVEL_0() {
-    return 100;
-  }
-  
-  /**
-   * Default value for the parameter level
-   */
-  @Pure
-  @SyntheticMember
-  @SarlSourceCode("100")
-  private final double $DEFAULT_VALUE$SETDESTINATION_0() {
-    return 100;
-  }
-  
-  @DefaultValueUse("double")
-  @SyntheticMember
-  protected final void setBatteryLevel() {
-    setBatteryLevel($DEFAULT_VALUE$SETBATTERYLEVEL_0());
-  }
-  
-  @DefaultValueUse("double")
-  @SyntheticMember
-  protected final void setDestination() {
-    setDestination($DEFAULT_VALUE$SETDESTINATION_0());
-  }
-  
   @Override
   @Pure
   @SyntheticMember
@@ -512,9 +414,9 @@ public class VehiculeAgent extends Agent {
     if (getClass() != obj.getClass())
       return false;
     VehiculeAgent other = (VehiculeAgent) obj;
-    if (!Objects.equals(this.destination, other.destination))
+    if (!Objects.equals(this.agentName, other.agentName))
       return false;
-    if (Double.doubleToLongBits(other.speed) != Double.doubleToLongBits(this.speed))
+    if (Double.doubleToLongBits(other.speedKmPerHour) != Double.doubleToLongBits(this.speedKmPerHour))
       return false;
     if (Double.doubleToLongBits(other.batteryLevel) != Double.doubleToLongBits(this.batteryLevel))
       return false;
@@ -527,8 +429,8 @@ public class VehiculeAgent extends Agent {
   public int hashCode() {
     int result = super.hashCode();
     final int prime = 31;
-    result = prime * result + Objects.hashCode(this.destination);
-    result = prime * result + Double.hashCode(this.speed);
+    result = prime * result + Objects.hashCode(this.agentName);
+    result = prime * result + Double.hashCode(this.speedKmPerHour);
     result = prime * result + Double.hashCode(this.batteryLevel);
     return result;
   }
@@ -542,5 +444,86 @@ public class VehiculeAgent extends Agent {
   @Inject
   public VehiculeAgent(final UUID parentID, final UUID agentID, final DynamicSkillProvider skillProvider) {
     super(parentID, agentID, skillProvider);
+  }
+  
+  @Pure
+  protected String getAgentName() {
+    return this.agentName;
+  }
+  
+  protected void setAgentName(final String agentName) {
+    this.agentName = agentName;
+  }
+  
+  @Pure
+  protected Node getStartNode() {
+    return this.startNode;
+  }
+  
+  protected void setStartNode(final Node startNode) {
+    this.startNode = startNode;
+  }
+  
+  @Pure
+  protected List<Node> getFullPath() {
+    return this.fullPath;
+  }
+  
+  protected void setFullPath(final List<Node> fullPath) {
+    this.fullPath = fullPath;
+  }
+  
+  @Pure
+  protected List<Node> getSubPath() {
+    return this.subPath;
+  }
+  
+  protected void setSubPath(final List<Node> subPath) {
+    this.subPath = subPath;
+  }
+  
+  @Pure
+  protected Node getCurrentLocation() {
+    return this.currentLocation;
+  }
+  
+  protected void setCurrentLocation(final Node currentLocation) {
+    this.currentLocation = currentLocation;
+  }
+  
+  @Pure
+  protected Node getDestinationNode() {
+    return this.destinationNode;
+  }
+  
+  protected void setDestinationNode(final Node destinationNode) {
+    this.destinationNode = destinationNode;
+  }
+  
+  @Pure
+  protected double getSpeedKmPerHour() {
+    return this.speedKmPerHour;
+  }
+  
+  protected void setSpeedKmPerHour(final double speedKmPerHour) {
+    this.speedKmPerHour = speedKmPerHour;
+  }
+  
+  @Pure
+  protected VehiculeStatus getStatus() {
+    return this.status;
+  }
+  
+  protected void setStatus(final VehiculeStatus status) {
+    this.status = status;
+  }
+  
+  @Pure
+  protected double getBatteryLevel() {
+    return this.batteryLevel;
+  }
+  
+  protected void setBatteryLevel(final double batteryLevel) {
+    this.batteryLevel = batteryLevel;
   }
 }

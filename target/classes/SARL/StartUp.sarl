@@ -5,16 +5,39 @@ import SARL.agents.VehiculeAgent
 import SARL.agents.geolocation.GeoLocationService
 import SARL.agents.geolocation.mapbox.Node
 import SARL.agents.EnvironmentAgent
-import SARL.map.JXMapViewerExample
-import javax.swing.SwingUtilities
+import javafx.util.Pair;
+
+import java.util.List
+import SARL.agents.TrafficSignalAgent
+import java.util.Map
+import java.util.HashMap
+import SARL.agents.TrafficLightStatus
+import SARL.agents.geolocation.mapbox.NodeUtils
 
 class StartUp {
 	static def main(arguments : String*) {
 		var bootstrap = SRE::getBootstrap
-		var startNode : Node = GeoLocationService.getNearestNode().convertNode();
-		var endNode : Node = GeoLocationService.getRandomNodeFromWayWithinRadius(1000).convertNode();
-		var frame : JXMapViewerExample = new JXMapViewerExample();
-		//bootstrap.startAgent(typeof(VehiculeAgent), startNode, endNode, frame)
-		//bootstrap.startAgent(typeof(EnvironmentAgent))
+		var location_pair1 : Pair<Node, Node> = GeoLocationService.getRandomStartAndDestination(10);
+		var location_pair2 : Pair<Node, Node> = GeoLocationService.getRandomStartAndDestination(10);
+		var location_pair3 : Pair<Node, Node> = GeoLocationService.getRandomStartAndDestination(10);
+		var lightsNode : List<Node> = GeoLocationService.getTrafficSignsFromOverpass(1);
+		lightsNode = NodeUtils.randomSubList(lightsNode, 3);
+		
+		// EnvironmentAgent takes timestep in milliseconds as parameter 
+		bootstrap.startAgent(typeof(EnvironmentAgent), new Long(1000) );
+		bootstrap.startAgent(typeof(VehiculeAgent), "agent1", location_pair1, new Double(100));
+		bootstrap.startAgent(typeof(VehiculeAgent), "agent2", location_pair2,  new Double(40));
+		// Traffic lights map definition for the timer
+		var trafficMap : Map<TrafficLightStatus, Long> = new HashMap();
+		trafficMap.put(TrafficLightStatus.GREEN, new Long(5000));
+		trafficMap.put(TrafficLightStatus.RED, new Long(3000));
+		trafficMap.put(TrafficLightStatus.ORANGE, new Long(2));
+
+		var i : int = 1
+		for (node : lightsNode) {
+			//Thread.sleep(1000);
+			bootstrap.startAgent(typeof(TrafficSignalAgent),"TrafficAgent"+i, node, trafficMap);
+			break;
+		}
 	}
 }

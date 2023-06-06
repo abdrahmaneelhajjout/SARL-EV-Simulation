@@ -6,9 +6,12 @@ package SARL.agents.capacities
 import io.sarl.lang.core.DefaultSkill
 import SARL.agents.MovingSkill
 import SARL.agents.BatterySkill
-import SARL.agents.GetLocationSkill
+import SARL.agents.GetLocationSkill;
+import SARL.agents.TrafficSignalSkill
 import SARL.agents.geolocation.mapbox.Node
 import java.util.List
+import SARL.agents.TrafficLightStatus
+import SARL.agents.TrafficLight
 
 /** 
  * @author ELHAJJOUT
@@ -17,7 +20,9 @@ import java.util.List
 @DefaultSkill(typeof(MovingSkill))
 capacity MovingCapacity {
 	def move(destination : Node)
+
 	def stop()
+
 	def wating()
 }
 
@@ -28,9 +33,14 @@ capacity BatteryCapacity {
 	def checkBatteryStatus() : double
 }
 
-@DefaultSkill(typeof(GetLocationSkill))
-capacity GetLocation {
-	def getCurrentLocation() : Node	// This will return a pair of latitude and longitude
-	def getRouteToDestination(source : Node, destination : Node): List<Node>
+@DefaultSkill(typeof(TrafficSignalSkill))
+capacity TrafficSignalManagementCapacity {
+	def changeColor(newColor : TrafficLight)
 }
 
+@DefaultSkill(typeof(GetLocationSkill))
+capacity GetLocation {
+	def getCurrentLocation() : Node // This will return a pair of latitude and longitude
+
+	def getRouteToDestination(source : Node, destination : Node) : List<Node>
+}

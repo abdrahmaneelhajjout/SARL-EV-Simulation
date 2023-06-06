@@ -2,6 +2,7 @@
  * 
  */
 package SARL.agents
+
 import static SARL.agents.geolocation.mapbox.NodeUtils.getNodesBetween;
 import io.sarl.core.AgentKilled
 import io.sarl.core.AgentSpawned
@@ -20,117 +21,53 @@ import io.sarl.core.Behaviors
 import SARL.agents.geolocation.mapbox.Node
 import SARL.agents.capacities.GetLocation
 import java.util.List
+import javafx.util.Pair;
+
 import java.util.Collections
 import SARL.agents.geolocation.mapbox.RoutingService
-import SARL.map.JXMapViewerExample
+import SARL.map.JXMapViewerFrame
+import org.eclipse.xtend.lib.annotations.Accessors
+import io.sarl.lang.core.Agent
 
 /** 
  * @author ELHAJJOUT
  * 
  */
 @SuppressWarnings("unused_private_member")
-agent VehiculeAgent {
+agent VehiculeAgent extends Agent {
 	uses Logging, Behaviors, GetLocation;
-	var startNode : Node;
-	var fullPath : List<Node>;
-	var subPath : List<Node>;
-	var currentLocation : Node;
-	var destination : String;
-	var destinationNode : Node
-	var speed : double;
-	var status : Status;
-	var batteryLevel : double
-	var frame : JXMapViewerExample;
-	
+
+	@Accessors var agentName : String;
+	@Accessors var startNode : Node;
+	@Accessors var fullPath : List<Node>;
+	@Accessors var subPath : List<Node>;
+	@Accessors var currentLocation : Node;
+	@Accessors var destinationNode : Node
+	@Accessors var speedKmPerHour : double;
+	@Accessors var status : VehiculeStatus;
+	@Accessors var batteryLevel : double
+	var location_pair : Pair<Node, Node>; // the pair <startNode, destinationNode>
+
 	on Initialize {
-		this.startNode = occurrence.parameters.get(0) as Node;
-		this.destinationNode = occurrence.parameters.get(1) as Node;
-		this.frame = occurrence.parameters.get(2) as JXMapViewerExample;
+		this.agentName = occurrence.parameters.get(0) as String;
+		this.location_pair = occurrence.parameters.get(1) as Pair<Node, Node>;
+		this.speedKmPerHour = occurrence.parameters.get(2) as Double;
+		this.startNode = location_pair.getKey();
+		this.destinationNode = location_pair.getValue();
 		this.fullPath = RoutingService.getRoute(startNode, destinationNode);
-		this.subPath = getNodesBetween(fullPath.get(0), fullPath.get(1), 0.1) // get the subpath for the first pair
-		
-		
+		this.subPath = getNodesBetween(fullPath.get(0), fullPath.get(1), 1000) // get the subpath for the first pair
+
 		var moving_behavior = new MovingBehavior(this)
-		registerBehavior(moving_behavior)
+		registerBehavior(moving_behavior, [^event|^event instanceof TimeStep])
 		// Event trigger before the agent begin to live or to be used.
 		// You should put all the initialization statements in this block of code.
+		info("----------------- " + this.agentName + " ----------------------")
 		info("The agent was started.")
 		info("from " + startNode)
 		info("to " + destinationNode)
-	}
-	
-	def getBatteryLevel() : double {
-		return this.batteryLevel
-	}
+		info("------------------------------------------------------------")
 
-	def setBatteryLevel(level: double = 100): void {
-		this.batteryLevel = level
 	}
-
-	def getDestination() : String {
-		return this.destination
-	}
-
-	def setDestination(level : double = 100) : void {
-		this.batteryLevel = level
-	}
-
-	def getDestinationNode() : Node {
-		return this.destinationNode
-	}
-
-	def setDestinationNode(node : Node) : void {
-		this.destinationNode = node
-	}
-
-	def getStartNode() : Node {
-		return this.startNode
-	}
-
-	def setStartNode(node : Node) : void {
-		this.startNode = node
-	}
-
-	def getCurrentLocation() : Node {
-		return this.currentLocation
-	}
-
-	def setCurrentLocation(node : Node) : void {
-		this.currentLocation = node
-	}
-
-	def getStatus() : Status {
-		return this.status
-	}
-
-	def setStatus(status : Status) : void {
-		this.status = status
-	}
-
-	def getFullPath() : List<Node> {
-		return this.fullPath 
-	}
-
-	def setFullPath(fullPath : List<Node>) : void {
-		this.fullPath = fullPath 
-	}
-
-	def getSubPath() : List<Node> {
-		return this.subPath 
-	}
-
-	def setSubPath(subPath : List<Node>) : void {
-		this.subPath = subPath 
-	}
-
-	def getFrame() : JXMapViewerExample{
-		return this.frame
-	}
-
-	def setFrame(frame : JXMapViewerExample) : void {
-		this.frame = frame
-	}
-	
 
 	on Destroy {
 		// Event trigger when the agent is destroyed from the system.
@@ -187,6 +124,3 @@ agent VehiculeAgent {
 		// Event trigger when a participant has left a space.
 	}
 }
-
-
-

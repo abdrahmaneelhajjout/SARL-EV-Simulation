@@ -1,10 +1,12 @@
 package SARL.agents;
 
-import SARL.agents.Status;
+import SARL.agents.AgentUpdateEvent;
 import SARL.agents.VehiculeAgent;
+import SARL.agents.VehiculeStatus;
 import SARL.agents.capacities.MovingCapacity;
 import SARL.agents.geolocation.mapbox.Node;
 import com.google.common.base.Objects;
+import io.sarl.core.DefaultContextInteractions;
 import io.sarl.core.Logging;
 import io.sarl.lang.annotation.ImportedCapacityFeature;
 import io.sarl.lang.annotation.SarlElementType;
@@ -37,11 +39,14 @@ public class MovingSkill extends Skill implements MovingCapacity {
   
   @Override
   public void move(final Node currentNode) {
-    Status _status = this.owner.getStatus();
-    boolean _equals = Objects.equal(_status, Status.moving);
+    VehiculeStatus _status = this.owner.getStatus();
+    boolean _equals = Objects.equal(_status, VehiculeStatus.moving);
     if (_equals) {
       this.owner.setCurrentLocation(currentNode);
-      this.owner.getFrame().changeWaypointMovement(currentNode);
+      DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
+      String _agentName = this.owner.getAgentName();
+      AgentUpdateEvent _agentUpdateEvent = new AgentUpdateEvent(currentNode, _agentName);
+      _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_agentUpdateEvent);
       Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
       _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info(("moved to : " + currentNode));
     }
@@ -49,14 +54,14 @@ public class MovingSkill extends Skill implements MovingCapacity {
   
   @Override
   public void stop() {
-    this.owner.setStatus(Status.stopped);
+    this.owner.setStatus(VehiculeStatus.stopped);
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
     _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("stopped");
   }
   
   @Override
   public void wating() {
-    this.owner.setStatus(Status.waiting);
+    this.owner.setStatus(VehiculeStatus.waiting);
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
     _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("waiting");
   }
@@ -73,6 +78,20 @@ public class MovingSkill extends Skill implements MovingCapacity {
       this.$CAPACITY_USE$IO_SARL_CORE_LOGGING = $getSkill(Logging.class);
     }
     return $castSkill(Logging.class, this.$CAPACITY_USE$IO_SARL_CORE_LOGGING);
+  }
+  
+  @Extension
+  @ImportedCapacityFeature(DefaultContextInteractions.class)
+  @SyntheticMember
+  private transient AtomicSkillReference $CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS;
+  
+  @SyntheticMember
+  @Pure
+  private DefaultContextInteractions $CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER() {
+    if (this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS == null || this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS.get() == null) {
+      this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS = $getSkill(DefaultContextInteractions.class);
+    }
+    return $castSkill(DefaultContextInteractions.class, this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS);
   }
   
   @Override

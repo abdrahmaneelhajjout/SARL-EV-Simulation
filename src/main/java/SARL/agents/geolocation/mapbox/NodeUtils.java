@@ -1,6 +1,7 @@
 package SARL.agents.geolocation.mapbox;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import SARL.agents.geolocation.overpass.HaversineDistance;
@@ -8,35 +9,34 @@ import SARL.agents.geolocation.overpass.HaversineDistance;
 public class NodeUtils {
 	public static List<Node> getNodesBetween(Node startNode, Node endNode, double distanceBetweenNodes) {
 		List<Node> nodesBetween = new ArrayList<>();
+		nodesBetween.add(startNode); // startNode is always included
 
-		// Calculate the total distance between the start and end nodes
-		double totalDistance = HaversineDistance.haversine(startNode, endNode)*100;
+		double totalDistance = HaversineDistance.haversine(startNode, endNode) * 100; // *100 to KM to Meters
 
-		// Calculate the number of intermediate nodes based on the distance between each
-		// node
-		int numIntermediateNodes = (int) (totalDistance / distanceBetweenNodes);
-		System.out.println(numIntermediateNodes);
-		// Calculate the latitude and longitude differences between the start and end
-		// nodes
-		double latDiff = endNode.getLatitude() - startNode.getLatitude();
-		double lonDiff = endNode.getLongitude() - startNode.getLongitude();
+		if (totalDistance > distanceBetweenNodes) {
+			// Calculate the number of nodes to be added
+			int numNodes = (int) (totalDistance / distanceBetweenNodes);
 
-		// Calculate the latitude and longitude increments for each intermediate node
-		double latIncrement = latDiff / (numIntermediateNodes + 1);
-		double lonIncrement = lonDiff / (numIntermediateNodes + 1);
+			// Calculate the lat, long differences between each node
+			double dLat = (endNode.getLatitude() - startNode.getLatitude()) / numNodes;
+			double dLong = (endNode.getLongitude() - startNode.getLongitude()) / numNodes;
 
-		// Generate the intermediate nodes
-		double currentLat = startNode.getLatitude();
-		double currentLon = startNode.getLongitude();
-		for (int i = 0; i < numIntermediateNodes; i++) {
-			currentLat += latIncrement;
-			currentLon += lonIncrement;
-			nodesBetween.add(new Node(currentLat, currentLon));
+			for (int i = 1; i < numNodes; i++) {
+				double newNodeLat = startNode.getLatitude() + i * dLat;
+				double newNodeLong = startNode.getLongitude() + i * dLong;
+				Node newNode = new Node(newNodeLat, newNodeLong);
+				nodesBetween.add(newNode);
+			}
 		}
 
 		return nodesBetween;
 	}
-
+	
+	public static <T> List<T> randomSubList(List<T> list, int newSize) {
+	    list = new ArrayList<>(list);
+	    Collections.shuffle(list);
+	    return list.subList(0, newSize);
+	}
 
 	public static void printOverpassQuery(List<Node> nodes) {
 		for (Node node : nodes) {
@@ -48,7 +48,7 @@ public class NodeUtils {
 	public static void main(String[] args) {
 		Node startNode = new Node(33.5895672, -7.6254343);
 		Node endNode = new Node(33.5891336, -7.6243139);
-		printOverpassQuery(getNodesBetween(startNode, endNode, 0.1));
+		printOverpassQuery(getNodesBetween(startNode, endNode, 10));
 	}
 
 }

@@ -1,8 +1,8 @@
 package SARL.agents;
 
-import SARL.agents.Status;
 import SARL.agents.TimeStep;
 import SARL.agents.VehiculeAgent;
+import SARL.agents.VehiculeStatus;
 import SARL.agents.capacities.BatteryCapacity;
 import SARL.agents.capacities.MovingCapacity;
 import SARL.agents.geolocation.mapbox.NodeUtils;
@@ -30,7 +30,7 @@ public class MovingBehavior extends Behavior {
   
   private int currentPathIndex = 0;
   
-  private final double distanceBetweenNodes = 0.1;
+  private double distanceBetweenNodes;
   
   public MovingBehavior(final VehiculeAgent owner) {
     super(owner);
@@ -38,31 +38,54 @@ public class MovingBehavior extends Behavior {
   }
   
   private void $behaviorUnit$TimeStep$0(final TimeStep occurrence) {
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    double _speedKmPerHour = this.owner.getSpeedKmPerHour();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info((" speed : " + Double.valueOf(((_speedKmPerHour * 1000) / 3600))));
+    double _speedKmPerHour_1 = this.owner.getSpeedKmPerHour();
+    this.distanceBetweenNodes = (occurrence.step * ((_speedKmPerHour_1 * 1000) / 3600));
     BatteryCapacity _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_BATTERYCAPACITY$CALLER = this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_BATTERYCAPACITY$CALLER();
     double _checkBatteryStatus = _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_BATTERYCAPACITY$CALLER.checkBatteryStatus();
     if ((_checkBatteryStatus < 20)) {
+      Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1.info("charging ...");
       BatteryCapacity _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_BATTERYCAPACITY$CALLER_1 = this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_BATTERYCAPACITY$CALLER();
       _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_BATTERYCAPACITY$CALLER_1.chargeBattery();
+      Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2.info("charged !");
     } else {
       if (((this.currentNodeIndex >= this.owner.getSubPath().size()) && (this.currentPathIndex < (this.owner.getFullPath().size() - 1)))) {
-        this.owner.setSubPath(NodeUtils.getNodesBetween(this.owner.getFullPath().get(this.currentPathIndex), this.owner.getFullPath().get((this.currentPathIndex + 1)), 
-          this.distanceBetweenNodes));
+        this.owner.setSubPath(NodeUtils.getNodesBetween(this.owner.getFullPath().get(this.currentPathIndex), 
+          this.owner.getFullPath().get((this.currentPathIndex + 1)), this.distanceBetweenNodes));
         this.currentNodeIndex = 0;
         this.currentPathIndex++;
       }
       int _size = this.owner.getSubPath().size();
       if ((this.currentNodeIndex < _size)) {
-        this.owner.setStatus(Status.moving);
+        this.owner.setStatus(VehiculeStatus.moving);
         MovingCapacity _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_MOVINGCAPACITY$CALLER = this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_MOVINGCAPACITY$CALLER();
         _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_MOVINGCAPACITY$CALLER.move(this.owner.getSubPath().get(this.currentNodeIndex));
         this.currentNodeIndex++;
       } else {
-        Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-        _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("The agent has reached its destination.");
+        Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+        _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3.info("The agent has reached its destination.");
         MovingCapacity _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_MOVINGCAPACITY$CALLER_1 = this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_MOVINGCAPACITY$CALLER();
         _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_MOVINGCAPACITY$CALLER_1.stop();
       }
     }
+  }
+  
+  @Extension
+  @ImportedCapacityFeature(Logging.class)
+  @SyntheticMember
+  private transient AtomicSkillReference $CAPACITY_USE$IO_SARL_CORE_LOGGING;
+  
+  @SyntheticMember
+  @Pure
+  private Logging $CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER() {
+    if (this.$CAPACITY_USE$IO_SARL_CORE_LOGGING == null || this.$CAPACITY_USE$IO_SARL_CORE_LOGGING.get() == null) {
+      this.$CAPACITY_USE$IO_SARL_CORE_LOGGING = $getSkill(Logging.class);
+    }
+    return $castSkill(Logging.class, this.$CAPACITY_USE$IO_SARL_CORE_LOGGING);
   }
   
   @Extension
@@ -91,20 +114,6 @@ public class MovingBehavior extends Behavior {
       this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_BATTERYCAPACITY = $getSkill(BatteryCapacity.class);
     }
     return $castSkill(BatteryCapacity.class, this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_BATTERYCAPACITY);
-  }
-  
-  @Extension
-  @ImportedCapacityFeature(Logging.class)
-  @SyntheticMember
-  private transient AtomicSkillReference $CAPACITY_USE$IO_SARL_CORE_LOGGING;
-  
-  @SyntheticMember
-  @Pure
-  private Logging $CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER() {
-    if (this.$CAPACITY_USE$IO_SARL_CORE_LOGGING == null || this.$CAPACITY_USE$IO_SARL_CORE_LOGGING.get() == null) {
-      this.$CAPACITY_USE$IO_SARL_CORE_LOGGING = $getSkill(Logging.class);
-    }
-    return $castSkill(Logging.class, this.$CAPACITY_USE$IO_SARL_CORE_LOGGING);
   }
   
   @SyntheticMember

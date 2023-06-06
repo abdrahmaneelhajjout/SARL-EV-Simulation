@@ -35,16 +35,18 @@ public class RoutingService {
         JsonNode coordinates = root.path("routes").get(0).path("geometry").path("coordinates");
 
         List<Node> route = new ArrayList<>();
-
+        route.add(startNode);
         for (JsonNode coordinate : coordinates) {
             double longitude = coordinate.get(0).asDouble();
             double latitude = coordinate.get(1).asDouble();
             Node node = new Node(latitude, longitude);
             route.add(node);
         }
-
+        route.add(destinationNode);
         return route;
     }
+	
+	
 	
     public static void main(String[] args) throws IOException {
     	Pair<Double,Double> pair = GeoLocationService.getCurrentLocationAsPair().get();

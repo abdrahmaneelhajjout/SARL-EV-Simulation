@@ -1,0 +1,109 @@
+/** 
+ * 
+ */
+package SARL.agents
+
+import io.sarl.core.AgentKilled
+import io.sarl.core.AgentSpawned
+import io.sarl.core.ContextJoined
+import io.sarl.core.ContextLeft
+import io.sarl.core.Destroy
+import io.sarl.core.Initialize
+import io.sarl.core.Logging
+import io.sarl.core.MemberJoined
+import io.sarl.core.MemberLeft
+import io.sarl.core.ParticipantJoined
+import io.sarl.core.ParticipantLeft
+import io.sarl.core.SpaceCreated
+import io.sarl.core.SpaceDestroyed
+import SARL.agents.geolocation.mapbox.Node;
+import org.eclipse.xtend.lib.annotations.Accessors
+import java.util.List
+import java.util.Map
+import io.sarl.lang.core.Agent
+import io.sarl.core.Behaviors
+import io.sarl.core.DefaultContextInteractions
+
+/** 
+ * @author ELHAJJOUT
+ * 
+ */
+agent TrafficSignalAgent extends Agent {
+	uses Logging, Behaviors, DefaultContextInteractions;
+	var agentName: String;
+	var location : Node;
+	@Accessors var lightStatusTimeList : Map<TrafficLightStatus, Long>;
+
+	@Accessors var trafficLightStatus : TrafficLight = new TrafficLight(TrafficLightStatus.GREEN);
+	@Accessors var time : float;
+
+	on Initialize {
+		var trafficBehavior : TrafficSignalBehavior = new TrafficSignalBehavior(this);
+		this.agentName = occurrence.parameters.get(0) as String;
+		this.location = occurrence.parameters.get(1) as Node;
+		this.lightStatusTimeList = occurrence.parameters.get(2) as Map;
+
+		// change the trffic light's duration in milliseconds
+		trafficLightStatus.lightStatus.RED.setDuration(lightStatusTimeList.get(TrafficLightStatus.RED));
+		trafficLightStatus.lightStatus.GREEN.setDuration(lightStatusTimeList.get(TrafficLightStatus.GREEN));
+		trafficLightStatus.lightStatus.ORANGE.setDuration(lightStatusTimeList.get(TrafficLightStatus.ORANGE));
+		emit(new TrafficSignaInitEvent(location, this.agentName ))
+		registerBehavior(trafficBehavior)
+	}
+
+	on Destroy {
+		// Event trigger when the agent is destroyed from the system.
+		// You should put all the resource releasing statements in this block of code.
+		info("The agent was stopped.")
+	}
+
+	on AgentSpawned {
+		// A new agent has been spawned in our context.
+	}
+
+	on AgentKilled {
+		// A new agent has been killed in our context.
+	}
+
+	on ContextJoined {
+		// Event trigger when an agent of the level joins a shared context.
+		// Sent to a agent of the same level.
+	}
+
+	on ContextLeft {
+		// Event trigger when an agent of the level jleaves a shared context.
+		// Sent to a agent of the same level.
+	}
+
+	on MemberJoined {
+		// Event trigger when an agent joins one of our shared super-holons.
+		// Sent to all members of the considered super-holon.
+	}
+
+	on MemberLeft {
+		// Event trigger when an agent leaves one of our shared super-holons.
+		// Sent to all members of the considered super-holon.
+	}
+
+	on MemberLeft {
+		// Event trigger when an agent leaves one of our shared super-holons.
+		// Sent to all members of the considered super-holon.
+	}
+
+	on SpaceCreated {
+		// Event trigger when a space is created into one of the contexts where the agent is.
+	}
+
+	on SpaceDestroyed {
+		// Event trigger when a space is destroyed from one of the contexts where the agent is.
+	}
+
+	on ParticipantJoined {
+		// Event trigger when a participant has joined a space.
+	}
+
+	on ParticipantLeft {
+		// Event trigger when a participant has left a space.
+	}
+
+}

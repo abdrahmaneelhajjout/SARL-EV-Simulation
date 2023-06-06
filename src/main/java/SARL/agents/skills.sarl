@@ -1,21 +1,25 @@
 package SARL.agents
 
-import SARL.agents.VehiculeAgent
-import SARL.agents.capacities.MovingCapacity
-import SARL.agents.capacities.BatteryCapacity
-import SARL.agents.capacities.GetLocation
+import SARL.agents.VehiculeAgent;
+import SARL.agents.TrafficSignalAgent;
+
+import SARL.agents.capacities.MovingCapacity;
+import SARL.agents.capacities.TrafficSignalManagementCapacity;
+import SARL.agents.capacities.BatteryCapacity;
+import SARL.agents.capacities.GetLocation;
 import SARL.agents.geolocation.mapbox.Node;
-import SARL.agents.geolocation.GeoLocationService
-import java.util.Optional
+import SARL.agents.geolocation.GeoLocationService;
+import java.util.Optional;
 import javafx.util.Pair;
-import java.util.List
-import SARL.agents.geolocation.mapbox.RoutingService
-import io.sarl.core.Logging
+import java.util.List;
+import SARL.agents.geolocation.mapbox.RoutingService;
+import io.sarl.core.Logging;
+import io.sarl.core.DefaultContextInteractions
 
 skill MovingSkill implements MovingCapacity {
-	uses Logging;
+	uses Logging, DefaultContextInteractions;
 
-	var  owner : VehiculeAgent
+	var owner : VehiculeAgent
 
 	def install {
 		// Initialization of the skill
@@ -25,20 +29,20 @@ skill MovingSkill implements MovingCapacity {
 	}
 
 	override move(currentNode : Node) {
-		if (owner.status == Status.moving) {
+		if (owner.status == VehiculeStatus.moving) {
 			owner.currentLocation = currentNode
-			owner.frame.changeWaypointMovement(currentNode)
+			emit(new AgentUpdateEvent(currentNode, owner.agentName))
 			info("moved to : " + currentNode);
 		}
 	}
 
 	override stop() {
-		owner.status = Status.stopped;
+		owner.status = VehiculeStatus.stopped;
 		info("stopped");
 	}
 
 	override wating() {
-		owner.status = Status.waiting;
+		owner.status = VehiculeStatus.waiting;
 		info("waiting");
 	}
 }
@@ -58,6 +62,35 @@ skill GetLocationSkill implements GetLocation {
 	override getRouteToDestination(source : Node, destination : Node) : List<Node> {
 		var path : List<Node> = RoutingService.getRoute(source, destination);
 		return path;
+	}
+}
+
+skill TrafficSignalSkill implements TrafficSignalManagementCapacity {
+	uses Logging
+
+	var owner : TrafficSignalAgent
+
+	def install {
+		assert getOwner !== null
+		this.owner = getOwner as TrafficSignalAgent
+
+	}
+
+	def prepareUninstallation {
+		// Function invoked when the skill is preparing to be uninstalled from the owner, but before the owner is destroyed.
+		// You should put all the resource release statements that should be executed before the owner is destroyed.
+		info("Preparing the uninstallation of the skill")
+	}
+
+	def uninstall {
+		// Function invoked when the skill is uninstalled from the owner, and after the owner is destroyed.
+		// You should put all the resource release statements in this block of code.
+		info("Uninstalling the skill")
+	}
+
+	override changeColor(newColor : TrafficLight) {
+		assert owner !== null
+		owner.trafficLightStatus = newColor
 	}
 }
 

@@ -2,41 +2,50 @@ package SARL.agents
 
 import SARL.agents.capacities.MovingCapacity
 import SARL.agents.capacities.BatteryCapacity
+import SARL.agents.capacities.TrafficSignalManagementCapacity
 import SARL.agents.TimeStep
 import SARL.agents.VehiculeAgent
 import io.sarl.core.Logging
 import static SARL.agents.geolocation.mapbox.NodeUtils.getNodesBetween;
-
+import io.sarl.core.Initialize
+import io.sarl.core.DefaultContextInteractions
+import io.sarl.core.Schedules
 
 // Behavior
 behavior MovingBehavior {
-	uses MovingCapacity, BatteryCapacity
-	uses Logging
+	uses Logging, MovingCapacity, BatteryCapacity
+
 	val owner : VehiculeAgent
 	var currentNodeIndex : int = 0
 	var currentPathIndex : int = 0
-	val distanceBetweenNodes : double = 0.1;
+	var distanceBetweenNodes : double;
+
 	new (owner : VehiculeAgent) {
 		super(owner)
+
 		this.owner = owner
 	}
-	
+
 	// React to the TimeStep event
 	on TimeStep {
+		info(" speed : " + ((owner.speedKmPerHour * 1000) / 3600));
+		this.distanceBetweenNodes = occurrence.step * ((owner.speedKmPerHour * 1000) / 3600) // divide by 100 to convert KM to Meter because distanceBetweenNodes in meters and speed in seconds
 		// Check battery status
 		if (checkBatteryStatus() < 20) {
+			info("charging ...")
 			chargeBattery()
+			info("charged !")
 		} else {
 			if (currentNodeIndex >= owner.subPath.size && currentPathIndex < owner.fullPath.size - 1) {
 				// Fetch subPath between two nodes
-				owner.subPath = getNodesBetween(owner.fullPath.get(currentPathIndex), owner.fullPath.get(currentPathIndex + 1),
-					distanceBetweenNodes)
+				owner.subPath = getNodesBetween(owner.fullPath.get(currentPathIndex),
+					owner.fullPath.get(currentPathIndex + 1), distanceBetweenNodes)
 				currentNodeIndex = 0
 				currentPathIndex++
 			}
 			if (currentNodeIndex < owner.subPath.size) {
 				// Move to the next node in the subPath
-				owner.status = Status.moving
+				owner.status = VehiculeStatus.moving
 				move(owner.subPath.get(currentNodeIndex))
 				currentNodeIndex++
 			} else {
@@ -45,11 +54,26 @@ behavior MovingBehavior {
 			}
 		}
 	}
-	
+
+}
+
+behavior TrafficSignalBehavior {
+	uses Logging, TrafficSignalManagementCapacity, Schedules;
+
+	val owner : TrafficSignalAgent
+
+	new (owner : TrafficSignalAgent) {
+		super(owner);
+		this.owner = owner;
 	}
 
+	on Initialize {
+		var time : long = owner.trafficLightStatus.getLightStatus.duration;
 
+		every(time) [ // every 1000 milliseconds
+			changeColor(owner.trafficLightStatus.getNext());
+		]
 
+	}
 
-
-
+}

@@ -18,24 +18,34 @@ import io.sarl.core.SpaceCreated
 import io.sarl.core.SpaceDestroyed
 import io.sarl.core.Schedules
 import io.sarl.core.DefaultContextInteractions
-import org.jgrapht.Graph
-import SARL.agents.capacities.GetLocation
-import io.sarl.core.Lifecycle
+import SARL.map.JXMapViewerFrame
 
 /** 
  * @author ELHAJJOUT
  * 
  */
 agent EnvironmentAgent {
-	uses Logging, GetLocation, Lifecycle
-	uses Schedules
+	uses Logging, Schedules
+	var timeStep : long;
+	//uses GetLocation
+	var map : JXMapViewerFrame;
 	var currentTimeStep : int = 0
-	var roadNetwork: Graph
+	//var roadNetwork: Graph
 	on Initialize {
-		every(1000) [ // every 1000 milliseconds
+		this.timeStep = occurrence.parameters.get(0) as Long;
+		map = new JXMapViewerFrame();
+		every(timeStep) [ // every 1000 milliseconds
             emit(new TimeStep(currentTimeStep))
 			currentTimeStep++
 		]
+	}
+	
+	on AgentUpdateEvent {
+		map.onAgentUpdate(occurrence.current_location_node, occurrence.agentName)
+	}
+	
+	on TrafficSignaInitEvent {
+		map.onTrafficAgentInit(occurrence.location, occurrence.agentName)
 	}
 
 	on Initialize {

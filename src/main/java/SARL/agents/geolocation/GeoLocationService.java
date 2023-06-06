@@ -10,18 +10,20 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.implementations.*;
 import org.jgrapht.*;
 import org.jgrapht.graph.DefaultWeightedEdge;
-import javafx.util.*;
+import javafx.util.Pair;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.jgrapht.GraphPath;
@@ -29,6 +31,7 @@ import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
+import org.jxmapviewer.viewer.GeoPosition;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -90,8 +93,8 @@ public class GeoLocationService {
 		List<Node> nodes = null;
 
 		while (nodes == null || nodes.size() < 1) {
-			String overpassQuery = "[out:json][timeout:3600];" + "node(around:" + radius + ", " + current_latitude + ", "
-					+ current_longitude + ");" + "out body;";
+			String overpassQuery = "[out:json][timeout:3600];" + "node(around:" + radius + ", " + current_latitude
+					+ ", " + current_longitude + ");" + "out body;";
 			Request request = new Request.Builder()
 					.url("https://overpass-api.de/api/interpreter?data=" + URLEncoder.encode(overpassQuery, "UTF-8"))
 					.build();
@@ -102,7 +105,7 @@ public class GeoLocationService {
 					String jsonString = jsonData.string();
 					// Use the Jackson ObjectMapper to deserialize the JSON
 					NodesResponseData responseData = mapper.readValue(jsonString, NodesResponseData.class);
-					nodes = responseData.elements;
+					nodes = responseData.getElements();
 				}
 			}
 
@@ -135,7 +138,7 @@ public class GeoLocationService {
 					String jsonString = jsonData.string();
 					// Use the Jackson ObjectMapper to deserialize the JSON
 					NodesResponseData responseData = mapper.readValue(jsonString, NodesResponseData.class);
-					nodes = responseData.elements;
+					nodes = responseData.getElements();
 				}
 			}
 
@@ -143,6 +146,63 @@ public class GeoLocationService {
 		}
 
 		return nodes.get(0);
+	}
+
+	public static Pair<SARL.agents.geolocation.mapbox.Node, SARL.agents.geolocation.mapbox.Node> getRandomStartAndDestination(
+			double radiusKm) {
+		double radiusInDegrees = radiusKm / 111.045;
+		double currentLatitude = getCurrentLocationAsPair().get().getKey();
+		double currentLongitude = getCurrentLocationAsPair().get().getValue();
+
+		double minLat = currentLatitude - radiusInDegrees;
+		double maxLat = currentLatitude + radiusInDegrees;
+		double minLong = currentLongitude - radiusInDegrees;
+		double maxLong = currentLongitude + radiusInDegrees;
+
+		Random random = new Random();
+
+		double startLat = minLat + (maxLat - minLat) * random.nextDouble();
+		double startLong = minLong + (maxLong - minLong) * random.nextDouble();
+
+		double endLat = minLat + (maxLat - minLat) * random.nextDouble();
+		double endLong = minLong + (maxLong - minLong) * random.nextDouble();
+
+		SARL.agents.geolocation.mapbox.Node start = new SARL.agents.geolocation.mapbox.Node(startLat, startLong);
+		SARL.agents.geolocation.mapbox.Node destination = new SARL.agents.geolocation.mapbox.Node(endLat, endLong);
+		return new Pair<>(start, destination);
+	}
+
+	public static List<SARL.agents.geolocation.mapbox.Node> getTrafficSignsFromOverpass(int radiusInKM)
+			throws IOException {
+		// Create the Jackson ObjectMapper
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerSubtypes(Node.class);
+		mapper.registerSubtypes(Way.class);
+		OkHttpClient client = new OkHttpClient();
+		Pair<Double, Double> locationPair = getCurrentLocationAsPair().get();
+		Double currentLatitude = locationPair.getKey();
+		Double currentLongitude = locationPair.getValue();
+
+		String overpassQuery = "[out:json][timeout:3600];" + "node(around:" + (radiusInKM * 1000) + ", "
+				+ currentLatitude + ", " + currentLongitude + ")" + "[highway = \"traffic_signals\"];" + "out body;";
+		Request request = new Request.Builder()
+				.url("https://overpass-api.de/api/interpreter?data=" + URLEncoder.encode(overpassQuery, "UTF-8"))
+				.build();
+
+		try (Response response = client.newCall(request).execute()) {
+			ResponseBody jsonData = response.body();
+			if (jsonData != null) {
+				String jsonString = jsonData.string();
+				// Use the Jackson ObjectMapper to deserialize the JSON
+				NodesResponseData responseData = mapper.readValue(jsonString, NodesResponseData.class);
+				if (responseData != null) {
+
+					return responseData.getElements().stream().map(e -> e.convertNode()).collect(Collectors.toList());
+				}
+			}
+		}
+		return Collections.emptyList();
+
 	}
 
 	public Node getRandomNodeFromRandomWayWithinRadius(Map<Way, List<Node>> wayToNodesMap, double radius)
@@ -188,7 +248,7 @@ public class GeoLocationService {
 		Double current_longitude = location_pair.getValue();
 		String overpassQuery = "[out:json][timeout:3600];" + "way(around:" + radius + ", " + current_latitude + ", "
 				+ current_longitude + ")"
-					+ "[building != \"yes\"][highway != \"residential\"][highway != \"footway\"][area != \"yes\"];"
+				+ "[building != \"yes\"][highway != \"residential\"][highway != \"footway\"][area != \"yes\"];"
 				+ "(._;>;);" + "out body;";
 		System.out.println(overpassQuery);
 		Request request = new Request.Builder()
@@ -230,7 +290,7 @@ public class GeoLocationService {
 		while (radius <= MAX_RADIUS) {
 			String overpassQuery = "[out:json][timeout:3600];" + "way(around:" + radius + ", " + currentLatitude + ", "
 					+ currentLongitude + ")"
-						+ "[building != \"yes\"][highway != \"residential\"][highway != \"footway\"][area != \"yes\"];"
+					+ "[building != \"yes\"][highway != \"residential\"][highway != \"footway\"][area != \"yes\"];"
 					+ "(._;>;);" + "out body;";
 			System.out.println(overpassQuery);
 			Request request = new Request.Builder()
@@ -344,32 +404,30 @@ public class GeoLocationService {
 
 		return wayNodeMap;
 	}
-	
-	public static Graph<Node, DefaultWeightedEdge> buildGraphWithExtremities(Map<Way, List<Node>> wayNodeMap) {
-	    Graph<Node, DefaultWeightedEdge> graph = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
 
-	    for (Map.Entry<Way, List<Node>> entry : wayNodeMap.entrySet()) {
-	        List<Node> nodeList = entry.getValue();
+	public static Graph<Node, DefaultWeightedEdge> buildGraphWithExtremities(Map<Way, List<Node>> wayNodeMap) {
+		Graph<Node, DefaultWeightedEdge> graph = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
+
+		for (Map.Entry<Way, List<Node>> entry : wayNodeMap.entrySet()) {
+			List<Node> nodeList = entry.getValue();
 			if (nodeList.size() >= 2) {
 				Node startNode = nodeList.get(0);
 				Node endNode = nodeList.get(nodeList.size() - 1);
 				if (!startNode.equals(endNode)) {
-					 graph.addVertex(startNode);
-			            graph.addVertex(endNode);
+					graph.addVertex(startNode);
+					graph.addVertex(endNode);
 					DefaultWeightedEdge edge = graph.addEdge(startNode, endNode);
 
 					if (edge != null) {
 						double distance = haversine(startNode, endNode); // calculate distance between startNode and
 																			// endNode
 						graph.setEdgeWeight(edge, distance);
-	            }	
+					}
 				}
-	           
-	            
-	            
-	        }
-	    }
-	    return graph;
+
+			}
+		}
+		return graph;
 	}
 
 	public static Map<Node, List<Way>> findIntersectionNodes(Map<Way, List<Node>> wayToNodesMap) {
@@ -490,35 +548,37 @@ public class GeoLocationService {
 
 		return nearestIntersectionNode;
 	}
-	public static void printIntersectionNodes(Map<Node, List<Way>> intersectionNodes) {
-	    for (Map.Entry<Node, List<Way>> entry : intersectionNodes.entrySet()) {
-	        Node node = entry.getKey();
-	        List<Way> ways = entry.getValue();
-	        
-	        System.out.println("Node: " + node);
 
-	        System.out.println();
-	    }
+	public static void printIntersectionNodes(Map<Node, List<Way>> intersectionNodes) {
+		for (Map.Entry<Node, List<Way>> entry : intersectionNodes.entrySet()) {
+			Node node = entry.getKey();
+			List<Way> ways = entry.getValue();
+
+			System.out.println("Node: " + node);
+
+			System.out.println();
+		}
 	}
-	
-	public static org.graphstream.graph.Graph convertJGraphTToGraphStream(org.jgrapht.Graph<Node, DefaultWeightedEdge> jgraph) {
+
+	public static org.graphstream.graph.Graph convertJGraphTToGraphStream(
+			org.jgrapht.Graph<Node, DefaultWeightedEdge> jgraph) {
 		org.graphstream.graph.Graph graphStream = new SingleGraph("Converted Graph");
 
-	    for (Node node : jgraph.vertexSet()) {
-	        graphStream.addNode(String.valueOf(node.getId()));
-	    }
+		for (Node node : jgraph.vertexSet()) {
+			graphStream.addNode(String.valueOf(node.getId()));
+		}
 
-	    for (DefaultWeightedEdge edge : jgraph.edgeSet()) {
-	        Node sourceNode = jgraph.getEdgeSource(edge);
-	        Node targetNode = jgraph.getEdgeTarget(edge);
-	        double weight = jgraph.getEdgeWeight(edge);
+		for (DefaultWeightedEdge edge : jgraph.edgeSet()) {
+			Node sourceNode = jgraph.getEdgeSource(edge);
+			Node targetNode = jgraph.getEdgeTarget(edge);
+			double weight = jgraph.getEdgeWeight(edge);
 
-	        Edge e = graphStream.addEdge(String.valueOf(sourceNode.getId()) + "-" + targetNode.getId(), String.valueOf(sourceNode.getId()), String.valueOf(targetNode.getId()), true);
-	    }
-	    
-	    return graphStream;
+			Edge e = graphStream.addEdge(String.valueOf(sourceNode.getId()) + "-" + targetNode.getId(),
+					String.valueOf(sourceNode.getId()), String.valueOf(targetNode.getId()), true);
+		}
+
+		return graphStream;
 	}
-
 
 	public static void main(String[] args) {
 		try {
@@ -541,12 +601,12 @@ public class GeoLocationService {
 			org.graphstream.graph.Graph conGraph = convertJGraphTToGraphStream(graph2);
 			System.setProperty("org.graphstream.ui", "swing");
 			conGraph.display();
-			for(DefaultWeightedEdge e : graph.edgeSet()){
-			    System.out.println(graph.getEdgeSource(e) + " --> " + graph.getEdgeTarget(e));
+			for (DefaultWeightedEdge e : graph.edgeSet()) {
+				System.out.println(graph.getEdgeSource(e) + " --> " + graph.getEdgeTarget(e));
 			}
 			DijkstraShortestPath<Node, DefaultWeightedEdge> dijkstraShortestPath = new DijkstraShortestPath<>(graph);
 			GraphPath<Node, DefaultWeightedEdge> path = dijkstraShortestPath.getPath(startNode, endNode);
-			
+
 			if (isGraphConnected(graph)) {
 				System.out.println("The graph is connected.");
 			} else {
