@@ -6,7 +6,7 @@ import SARL.agents.TrafficSignalAgent;
 import SARL.agents.capacities.MovingCapacity;
 import SARL.agents.capacities.TrafficSignalManagementCapacity;
 import SARL.agents.capacities.BatteryCapacity;
-import SARL.agents.capacities.GetLocation;
+import SARL.agents.capacities.GeoLocationCapacity;
 import SARL.agents.geolocation.mapbox.Node;
 import SARL.agents.geolocation.GeoLocationService;
 import java.util.Optional;
@@ -15,6 +15,7 @@ import java.util.List;
 import SARL.agents.geolocation.mapbox.RoutingService;
 import io.sarl.core.Logging;
 import io.sarl.core.DefaultContextInteractions
+import SARL.agents.capacities.ChargingCapacity
 
 skill MovingSkill implements MovingCapacity {
 	uses Logging, DefaultContextInteractions;
@@ -32,7 +33,6 @@ skill MovingSkill implements MovingCapacity {
 		if (owner.status == VehiculeStatus.moving) {
 			owner.currentLocation = currentNode
 			emit(new AgentUpdateEvent(currentNode, owner.agentName))
-			info("moved to : " + currentNode);
 		}
 	}
 
@@ -47,7 +47,7 @@ skill MovingSkill implements MovingCapacity {
 	}
 }
 
-skill GetLocationSkill implements GetLocation {
+skill GetLocationSkill implements GeoLocationCapacity {
 
 	override getCurrentLocation() : Node {
 		var optionalLocation : Optional<Pair<Double, Double>> = GeoLocationService.getCurrentLocationAsPair();
@@ -63,6 +63,11 @@ skill GetLocationSkill implements GetLocation {
 		var path : List<Node> = RoutingService.getRoute(source, destination);
 		return path;
 	}
+
+	override getRouteToDestination(source : Node, viaNode : Node, destination : Node) : List<Node> {
+		var path : List<Node> = RoutingService.getRoute(source, viaNode, destination);
+		return path;
+	}
 }
 
 skill TrafficSignalSkill implements TrafficSignalManagementCapacity {
@@ -73,43 +78,89 @@ skill TrafficSignalSkill implements TrafficSignalManagementCapacity {
 	def install {
 		assert getOwner !== null
 		this.owner = getOwner as TrafficSignalAgent
-
-	}
-
-	def prepareUninstallation {
-		// Function invoked when the skill is preparing to be uninstalled from the owner, but before the owner is destroyed.
-		// You should put all the resource release statements that should be executed before the owner is destroyed.
-		info("Preparing the uninstallation of the skill")
-	}
-
-	def uninstall {
-		// Function invoked when the skill is uninstalled from the owner, and after the owner is destroyed.
-		// You should put all the resource release statements in this block of code.
-		info("Uninstalling the skill")
 	}
 
 	override changeColor(newColor : TrafficLight) {
 		assert owner !== null
 		owner.trafficLightStatus = newColor
+
 	}
 }
 
 skill BatterySkill implements BatteryCapacity {
+	var  owner : VehiculeAgent;
+
+	def install {
+		assert getOwner !== null
+		this.owner = getOwner as VehiculeAgent
+	}
+
+	def getBatteryLevel : int {
+		return owner.batteryLevel
+	}
+
+	def setBatteryLevel(level : int) : void {
+		if (level <= owner.batteryLevel) {
+			owner.batteryLevel = level
+		}
+	}
+
+	def getBatteryCapacity : int {
+		return owner.batteryCapacity
+	}
+}
+
+skill ChargingCapacitySkill implements ChargingCapacity {
+	uses GeoLocationCapacity, DefaultContextInteractions, Logging;
+
 	var owner : VehiculeAgent
 
 	def install {
-		// Initialization of the skill
 		assert getOwner !== null
 		this.owner = getOwner as VehiculeAgent
-
 	}
 
-	override chargeBattery() {
-		this.owner.setBatteryLevel(100)
+	def getBatteryLevel() : int {
+		return this.owner.batteryLevel
 	}
 
-	override checkBatteryStatus() : double {
+	def goCharge() : void {
 
-		return this.owner.getBatteryLevel();
+		emit(
+			new FindChargeStationEvent((getOwner as VehiculeAgent).currentLocation,
+				(getOwner as VehiculeAgent).destinationNode,
+				owner.batteryLevel))
+		var closestChagreStationNode : Node;
+		while ((closestChagreStationNode = (getOwner as VehiculeAgent).chargeStationNode) == null) {
+		};
+		info(owner.agentName+" - "+closestChagreStationNode)
+		owner.fullPath = getRouteToDestination((getOwner as VehiculeAgent).currentLocation, closestChagreStationNode,
+			owner.destinationNode)
 	}
+
+	def getBatteryCapacity() : int {
+		return (getOwner as VehiculeAgent).batteryCapacity
+	}
+
+	def getBatteryChargeCapacity() : int {
+		return (getOwner as VehiculeAgent).batteryChargeCapacity
+	}
+
+	def updateBatteryLevel(amount : int) {
+		var newLevel = (getOwner as VehiculeAgent).batteryLevel + amount
+		if (newLevel > (getOwner as VehiculeAgent).batteryCapacity) {
+			(getOwner as VehiculeAgent).batteryLevel = (getOwner as VehiculeAgent).batteryCapacity
+		} else {
+			(getOwner as VehiculeAgent).batteryLevel = newLevel
+		}
+	}
+
+	def setBatteryLevel(amount : int) {
+		if (amount >= 0 && amount <= (getOwner as VehiculeAgent).batteryCapacity) {
+			(getOwner as VehiculeAgent).batteryLevel = amount
+		} else {
+			throw new Exception("Invalid battery level. Battery level should be between 0 and battery capacity.")
+		}
+	}
+
 }

@@ -1,5 +1,6 @@
 package SARL.agents;
 
+import SARL.agents.TrafficLightStatus;
 import SARL.agents.geolocation.mapbox.Node;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
@@ -17,9 +18,12 @@ public class TrafficSignaInitEvent extends Event {
   
   public final String agentName;
   
-  public TrafficSignaInitEvent(final Node location, final String agentName) {
+  public final TrafficLightStatus color;
+  
+  public TrafficSignaInitEvent(final Node location, final String agentName, final TrafficLightStatus color) {
     this.location = location;
     this.agentName = agentName;
+    this.color = color;
   }
   
   @Override
@@ -57,8 +61,9 @@ public class TrafficSignaInitEvent extends Event {
     super.toString(builder);
     builder.add("location", this.location);
     builder.add("agentName", this.agentName);
+    builder.add("color", this.color);
   }
   
   @SyntheticMember
-  private static final long serialVersionUID = 5037401670L;
+  private static final long serialVersionUID = 1022185591L;
 }

@@ -47,8 +47,6 @@ public class MovingSkill extends Skill implements MovingCapacity {
       String _agentName = this.owner.getAgentName();
       AgentUpdateEvent _agentUpdateEvent = new AgentUpdateEvent(currentNode, _agentName);
       _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_agentUpdateEvent);
-      Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info(("moved to : " + currentNode));
     }
   }
   

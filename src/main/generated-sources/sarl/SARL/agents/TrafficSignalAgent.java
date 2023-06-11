@@ -46,6 +46,7 @@ import org.eclipse.xtext.xbase.lib.Pure;
 @SarlElementType(19)
 @SuppressWarnings("all")
 public class TrafficSignalAgent extends Agent {
+  @Accessors
   private String agentName;
   
   private Node location;
@@ -54,12 +55,14 @@ public class TrafficSignalAgent extends Agent {
   private Map<TrafficLightStatus, Long> lightStatusTimeList;
   
   @Accessors
-  private TrafficLight trafficLightStatus = new TrafficLight(TrafficLightStatus.GREEN);
+  private TrafficLight trafficLightStatus;
   
   @Accessors
   private float time;
   
   private void $behaviorUnit$Initialize$0(final Initialize occurrence) {
+    TrafficLight _trafficLight = new TrafficLight();
+    this.trafficLightStatus = _trafficLight;
     TrafficSignalBehavior trafficBehavior = new TrafficSignalBehavior(this);
     Object _get = occurrence.parameters[0];
     this.agentName = (_get == null ? null : _get.toString());
@@ -67,11 +70,13 @@ public class TrafficSignalAgent extends Agent {
     this.location = ((Node) _get_1);
     Object _get_2 = occurrence.parameters[2];
     this.lightStatusTimeList = ((Map) _get_2);
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.setLoggingName(this.agentName);
     TrafficLightStatus.RED.setDuration(((this.lightStatusTimeList.get(TrafficLightStatus.RED)) == null ? 0 : (this.lightStatusTimeList.get(TrafficLightStatus.RED)).longValue()));
     TrafficLightStatus.GREEN.setDuration(((this.lightStatusTimeList.get(TrafficLightStatus.GREEN)) == null ? 0 : (this.lightStatusTimeList.get(TrafficLightStatus.GREEN)).longValue()));
     TrafficLightStatus.ORANGE.setDuration(((this.lightStatusTimeList.get(TrafficLightStatus.ORANGE)) == null ? 0 : (this.lightStatusTimeList.get(TrafficLightStatus.ORANGE)).longValue()));
     DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
-    TrafficSignaInitEvent _trafficSignaInitEvent = new TrafficSignaInitEvent(this.location, this.agentName);
+    TrafficSignaInitEvent _trafficSignaInitEvent = new TrafficSignaInitEvent(this.location, this.agentName, this.trafficLightStatus.lightStatus);
     _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_trafficSignaInitEvent);
     Behaviors _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER();
     _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER.registerBehavior(trafficBehavior);
@@ -406,6 +411,15 @@ public class TrafficSignalAgent extends Agent {
   @Inject
   public TrafficSignalAgent(final UUID parentID, final UUID agentID, final DynamicSkillProvider skillProvider) {
     super(parentID, agentID, skillProvider);
+  }
+  
+  @Pure
+  protected String getAgentName() {
+    return this.agentName;
+  }
+  
+  protected void setAgentName(final String agentName) {
+    this.agentName = agentName;
   }
   
   @Pure

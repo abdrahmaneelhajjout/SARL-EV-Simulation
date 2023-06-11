@@ -19,7 +19,6 @@ import io.sarl.core.SpaceCreated
 import io.sarl.core.SpaceDestroyed
 import io.sarl.core.Behaviors
 import SARL.agents.geolocation.mapbox.Node
-import SARL.agents.capacities.GetLocation
 import java.util.List
 import javafx.util.Pair;
 
@@ -28,6 +27,8 @@ import SARL.agents.geolocation.mapbox.RoutingService
 import SARL.map.JXMapViewerFrame
 import org.eclipse.xtend.lib.annotations.Accessors
 import io.sarl.lang.core.Agent
+import SARL.agents.capacities.GeoLocationCapacity
+import io.sarl.core.DefaultContextInteractions
 
 /** 
  * @author ELHAJJOUT
@@ -35,7 +36,7 @@ import io.sarl.lang.core.Agent
  */
 @SuppressWarnings("unused_private_member")
 agent VehiculeAgent extends Agent {
-	uses Logging, Behaviors, GetLocation;
+	uses Logging, Behaviors, GeoLocationCapacity, DefaultContextInteractions;
 
 	@Accessors var agentName : String;
 	@Accessors var startNode : Node;
@@ -45,82 +46,59 @@ agent VehiculeAgent extends Agent {
 	@Accessors var destinationNode : Node
 	@Accessors var speedKmPerHour : double;
 	@Accessors var status : VehiculeStatus;
-	@Accessors var batteryLevel : double
+	@Accessors var batteryLevel : Integer
+	@Accessors var batteryCapacity : Integer = 2000
+	@Accessors var batteryChargeCapacity : Integer  = 20// how much energy can be received in a unit of time
+	@Accessors var chargeStationNode : Node
 	var location_pair : Pair<Node, Node>; // the pair <startNode, destinationNode>
 
 	on Initialize {
+		
+		
+		info(occurrence.parameters.get(0))
 		this.agentName = occurrence.parameters.get(0) as String;
+		
 		this.location_pair = occurrence.parameters.get(1) as Pair<Node, Node>;
 		this.speedKmPerHour = occurrence.parameters.get(2) as Double;
 		this.startNode = location_pair.getKey();
+		this.currentLocation = location_pair.getKey();
 		this.destinationNode = location_pair.getValue();
-		this.fullPath = RoutingService.getRoute(startNode, destinationNode);
+		this.fullPath = getRouteToDestination(startNode, destinationNode);
 		this.subPath = getNodesBetween(fullPath.get(0), fullPath.get(1), 1000) // get the subpath for the first pair
-
-		var moving_behavior = new MovingBehavior(this)
-		registerBehavior(moving_behavior, [^event|^event instanceof TimeStep])
-		// Event trigger before the agent begin to live or to be used.
-		// You should put all the initialization statements in this block of code.
+		var agentBehavior = new VehiculeAgentBehavior(this)
+		setLoggingName(agentName)
+		registerBehavior(agentBehavior)
 		info("----------------- " + this.agentName + " ----------------------")
 		info("The agent was started.")
 		info("from " + startNode)
 		info("to " + destinationNode)
 		info("------------------------------------------------------------")
-
+		emit(new FullPathUpdateEvent(this.agentName, this.fullPath))
 	}
 
 	on Destroy {
-		// Event trigger when the agent is destroyed from the system.
-		// You should put all the resource releasing statements in this block of code.
 		info("The agent was stopped.")
 	}
-
 	on AgentSpawned {
-		// A new agent has been spawned in our context.
 	}
-
 	on AgentKilled {
-		// A new agent has been killed in our context.
 	}
-
 	on ContextJoined {
-		// Event trigger when an agent of the level joins a shared context.
-		// Sent to a agent of the same level.
 	}
-
 	on ContextLeft {
-		// Event trigger when an agent of the level jleaves a shared context.
-		// Sent to a agent of the same level.
 	}
-
 	on MemberJoined {
-		// Event trigger when an agent joins one of our shared super-holons.
-		// Sent to all members of the considered super-holon.
 	}
-
 	on MemberLeft {
-		// Event trigger when an agent leaves one of our shared super-holons.
-		// Sent to all members of the considered super-holon.
 	}
-
 	on MemberLeft {
-		// Event trigger when an agent leaves one of our shared super-holons.
-		// Sent to all members of the considered super-holon.
 	}
-
 	on SpaceCreated {
-		// Event trigger when a space is created into one of the contexts where the agent is.
 	}
-
 	on SpaceDestroyed {
-		// Event trigger when a space is destroyed from one of the contexts where the agent is.
 	}
-
 	on ParticipantJoined {
-		// Event trigger when a participant has joined a space.
 	}
-
 	on ParticipantLeft {
-		// Event trigger when a participant has left a space.
 	}
 }

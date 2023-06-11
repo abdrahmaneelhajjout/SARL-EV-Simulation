@@ -1,9 +1,11 @@
 package SARL.agents;
 
+import SARL.agents.TrafficColorChangedEvent;
+import SARL.agents.TrafficLight;
 import SARL.agents.TrafficSignalAgent;
 import SARL.agents.capacities.TrafficSignalManagementCapacity;
+import io.sarl.core.DefaultContextInteractions;
 import io.sarl.core.Initialize;
-import io.sarl.core.Logging;
 import io.sarl.core.Schedules;
 import io.sarl.lang.annotation.ImportedCapacityFeature;
 import io.sarl.lang.annotation.PerceptGuardEvaluator;
@@ -35,24 +37,30 @@ public class TrafficSignalBehavior extends Behavior {
     long time = this.owner.getTrafficLightStatus().getLightStatus().getDuration();
     Schedules _$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER();
     final Procedure1<Agent> _function = (Agent it) -> {
+      TrafficLight lightstatus = this.owner.getTrafficLightStatus().getNext();
       TrafficSignalManagementCapacity _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_TRAFFICSIGNALMANAGEMENTCAPACITY$CALLER = this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_TRAFFICSIGNALMANAGEMENTCAPACITY$CALLER();
-      _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_TRAFFICSIGNALMANAGEMENTCAPACITY$CALLER.changeColor(this.owner.getTrafficLightStatus().getNext());
+      _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_TRAFFICSIGNALMANAGEMENTCAPACITY$CALLER.changeColor(lightstatus);
+      DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
+      String _imageIconName = lightstatus.lightStatus.getImageIconName();
+      String _agentName = this.owner.getAgentName();
+      TrafficColorChangedEvent _trafficColorChangedEvent = new TrafficColorChangedEvent(_imageIconName, _agentName);
+      _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_trafficColorChangedEvent);
     };
     _$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER.every(time, _function);
   }
   
   @Extension
-  @ImportedCapacityFeature(Logging.class)
+  @ImportedCapacityFeature(DefaultContextInteractions.class)
   @SyntheticMember
-  private transient AtomicSkillReference $CAPACITY_USE$IO_SARL_CORE_LOGGING;
+  private transient AtomicSkillReference $CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS;
   
   @SyntheticMember
   @Pure
-  private Logging $CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER() {
-    if (this.$CAPACITY_USE$IO_SARL_CORE_LOGGING == null || this.$CAPACITY_USE$IO_SARL_CORE_LOGGING.get() == null) {
-      this.$CAPACITY_USE$IO_SARL_CORE_LOGGING = $getSkill(Logging.class);
+  private DefaultContextInteractions $CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER() {
+    if (this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS == null || this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS.get() == null) {
+      this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS = $getSkill(DefaultContextInteractions.class);
     }
-    return $castSkill(Logging.class, this.$CAPACITY_USE$IO_SARL_CORE_LOGGING);
+    return $castSkill(DefaultContextInteractions.class, this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS);
   }
   
   @Extension

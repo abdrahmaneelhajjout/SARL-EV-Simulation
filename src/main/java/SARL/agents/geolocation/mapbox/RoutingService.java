@@ -46,6 +46,44 @@ public class RoutingService {
         return route;
     }
 	
+	public static List<Node> getRoute(Node startNode, Node viaNode, Node destinationNode) throws IOException {		
+        OkHttpClient client = new OkHttpClient();
+        ObjectMapper objectMapper = new ObjectMapper();
+        String url = String.format("https://api.mapbox.com/directions/v5/mapbox/driving/%f,%f;%f,%f;%f,%f?geometries=geojson&access_token=%s",
+                startNode.getLongitude(), startNode.getLatitude(),
+                viaNode.getLongitude(), viaNode.getLatitude(),
+                destinationNode.getLongitude(), destinationNode.getLatitude(),
+                MAPBOX_ACCESS_TOKEN);
+
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JsonNode root = objectMapper.readTree(responseBody);
+        JsonNode coordinates = null;
+        try {
+        	coordinates = root.path("routes").get(0).path("geometry").path("coordinates");
+		} catch (Exception e) {
+			throw new NullPointerException("there is no route to destination");
+		}
+         
+
+        List<Node> route = new ArrayList<>();
+        route.add(startNode);
+        for (JsonNode coordinate : coordinates) {
+            double longitude = coordinate.get(0).asDouble();
+            double latitude = coordinate.get(1).asDouble();
+            Node node = new Node(latitude, longitude);
+            route.add(node);
+        }
+        route.add(destinationNode);
+        return route;
+    }
+	
+	
 	
 	
     public static void main(String[] args) throws IOException {

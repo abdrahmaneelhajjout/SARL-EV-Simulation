@@ -1,6 +1,8 @@
 package SARL.agents
 
 import SARL.agents.geolocation.mapbox.Node;
+import java.util.UUID
+import java.util.List
 
 event TimeStep {
 	val step : int // secondes
@@ -10,7 +12,6 @@ event TimeStep {
 	}
 }
 
-
 event AgentUpdateEvent {
 	val current_location_node : Node
 	val agentName : String;
@@ -18,21 +19,90 @@ event AgentUpdateEvent {
 	new (current_location_node : Node, agentName : String) {
 		this.current_location_node = current_location_node;
 		this.agentName = agentName;
-		
+
 	}
 }
-
-
-
 
 event TrafficSignaInitEvent {
 	val location : Node
 	val agentName : String;
+	val color : TrafficLightStatus
 
-	new (location : Node, agentName : String) {
+	new (location : Node, agentName : String, color : TrafficLightStatus) {
 		this.location = location;
 		this.agentName = agentName;
-		
+		this.color = color;
+
 	}
 }
 
+event TrafficColorChangedEvent {
+	val agentName : String;
+	val colorIcon : String
+
+	new (colorIcon : String, agentName : String) {
+		this.colorIcon = colorIcon;
+		this.agentName = agentName;
+
+	}
+}
+
+event ChargeRequestEvent {
+	var vehicleId : UUID
+	var currentBatteryLevel : int
+	var ChargeBatteryCapacity : int
+}
+
+event FindChargeStationEvent {
+	val currentBatteryLevel : int
+	val currentLocation: Node
+	val destination: Node
+	
+	new (currentLocation : Node, destination : Node, currentBatteryLevel : int) {
+		this.currentLocation = currentLocation
+		this.destination = destination
+		this.currentBatteryLevel = currentBatteryLevel
+	}	
+}
+
+event FullPathUpdateEvent {
+	val agentName : String
+	val newPath : List<Node>
+	
+	new (agentName : String, newPath : List<Node>){
+		this.agentName = agentName;
+		this.newPath = newPath
+	}
+}
+
+event VehicleAgentCreatedEvent {
+	val agentName : String
+	new (agentName : String) {
+		this.agentName = agentName;
+	}
+}
+
+
+
+event chargeStationFoundEvent {
+	val closestStation : Node;
+	val stationAgentName : String;
+	new (closestStation : Node, stationAgentName : String) {
+		this.closestStation = closestStation;
+		this.stationAgentName = stationAgentName;
+	}
+}
+
+
+event ChargeFinished {
+	var vehicleId : UUID
+}
+
+event ChargeStationInitEvent {
+	val agentName : String
+	val location : Node
+	new (location : Node, agentName : String) {
+		this.location = location;
+		this.agentName = agentName
+	}
+}

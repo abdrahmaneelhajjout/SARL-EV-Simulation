@@ -12,32 +12,52 @@ import SARL.agents.TrafficSignalAgent
 import java.util.Map
 import java.util.HashMap
 import SARL.agents.TrafficLightStatus
-import SARL.agents.geolocation.mapbox.NodeUtils
+import SARL.agents.ChargeStationAgent
 
 class StartUp {
+	
 	static def main(arguments : String*) {
-		var bootstrap = SRE::getBootstrap
-		var location_pair1 : Pair<Node, Node> = GeoLocationService.getRandomStartAndDestination(10);
-		var location_pair2 : Pair<Node, Node> = GeoLocationService.getRandomStartAndDestination(10);
-		var location_pair3 : Pair<Node, Node> = GeoLocationService.getRandomStartAndDestination(10);
-		var lightsNode : List<Node> = GeoLocationService.getTrafficSignsFromOverpass(1);
-		lightsNode = NodeUtils.randomSubList(lightsNode, 3);
+		var marrakech_node : Node =	new Node(31.648711, -8.013689);
+		var bootstrap = SRE::getBootstrap;
+		var location_pair1 : Pair<Node, Node> = GeoLocationService.getRandomStartAndDestination(marrakech_node, 1);
+		var location_pair2 : Pair<Node, Node> = GeoLocationService.getRandomStartAndDestination(marrakech_node, 1);
+		var location_pair3 : Pair<Node, Node> = GeoLocationService.getRandomStartAndDestination(marrakech_node, 1);
+		var lightsNode : List<Node> = GeoLocationService.getTrafficSignsFromOverpass(marrakech_node, 1);
+		// lightsNode = NodeUtils.randomSubList(lightsNode, 3);
+		// EnvironmentAgent takes timestep in milliseconds as parameter
+		bootstrap.startAgent(typeof(EnvironmentAgent), new Long(1000), marrakech_node);
+		var randomNode : Node = GeoLocationService.getRandomNodeFromWayWithinRadius(marrakech_node, 1).convertNode
+		var randomNode2 : Node = GeoLocationService.getRandomNodeFromWayWithinRadius(marrakech_node, 1).convertNode
+		var randomNode3 : Node = GeoLocationService.getRandomNodeFromWayWithinRadius(marrakech_node, 1).convertNode
+		var randomNode4 : Node = GeoLocationService.getRandomNodeFromWayWithinRadius(marrakech_node, 1).convertNode
 		
-		// EnvironmentAgent takes timestep in milliseconds as parameter 
-		bootstrap.startAgent(typeof(EnvironmentAgent), new Long(1000) );
-		bootstrap.startAgent(typeof(VehiculeAgent), "agent1", location_pair1, new Double(100));
-		bootstrap.startAgent(typeof(VehiculeAgent), "agent2", location_pair2,  new Double(40));
+		bootstrap.startAgent(typeof(ChargeStationAgent),"station1",	randomNode);
+		bootstrap.startAgent(typeof(ChargeStationAgent), "station2", randomNode2);
+		bootstrap.startAgent(typeof(ChargeStationAgent), "station3", randomNode3);
+		bootstrap.startAgent(typeof(ChargeStationAgent), "station4", randomNode4);
+		Thread.sleep(5000);
+		
+		/** 
+		 * Creates a new vehicle agent with the specified starting and ending nodes and speed.
+		 * @param startNode the starting node of the vehicle's route
+		 * @param endNode the ending node of the vehicle's route
+		 * @param speed the speed of the vehicle in kilometers per hour
+		 */
+		bootstrap.startAgent(typeof(VehiculeAgent), "agent1", location_pair1, new Double(40));
+		bootstrap.startAgent(typeof(VehiculeAgent), "agent2", location_pair2, new Double(20));
+		bootstrap.startAgent(typeof(VehiculeAgent), "agent3", location_pair3, new Double(20));
 		// Traffic lights map definition for the timer
+		
+		
 		var trafficMap : Map<TrafficLightStatus, Long> = new HashMap();
-		trafficMap.put(TrafficLightStatus.GREEN, new Long(5000));
+		trafficMap.put(TrafficLightStatus.GREEN, new Long(3000));
 		trafficMap.put(TrafficLightStatus.RED, new Long(3000));
-		trafficMap.put(TrafficLightStatus.ORANGE, new Long(2));
+		trafficMap.put(TrafficLightStatus.ORANGE, new Long(3000));
 
 		var i : int = 1
 		for (node : lightsNode) {
-			//Thread.sleep(1000);
-			bootstrap.startAgent(typeof(TrafficSignalAgent),"TrafficAgent"+i, node, trafficMap);
-			break;
+			//bootstrap.startAgent(typeof(TrafficSignalAgent), "TrafficAgent" + i, node, trafficMap);
+			i++;
 		}
 	}
 }

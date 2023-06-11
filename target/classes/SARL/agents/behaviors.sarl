@@ -10,10 +10,13 @@ import static SARL.agents.geolocation.mapbox.NodeUtils.getNodesBetween;
 import io.sarl.core.Initialize
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Schedules
+import SARL.agents.capacities.ChargingCapacity
+import SARL.agents.capacities.GeoLocationCapacity
+import SARL.agents.geolocation.mapbox.NodeUtils
 
 // Behavior
-behavior MovingBehavior {
-	uses Logging, MovingCapacity, BatteryCapacity
+behavior VehiculeAgentBehavior {
+	uses Logging, MovingCapacity, ChargingCapacity, DefaultContextInteractions
 
 	val owner : VehiculeAgent
 	var currentNodeIndex : int = 0
@@ -22,18 +25,18 @@ behavior MovingBehavior {
 
 	new (owner : VehiculeAgent) {
 		super(owner)
-
 		this.owner = owner
 	}
 
 	// React to the TimeStep event
 	on TimeStep {
-		info(" speed : " + ((owner.speedKmPerHour * 1000) / 3600));
 		this.distanceBetweenNodes = occurrence.step * ((owner.speedKmPerHour * 1000) / 3600) // divide by 100 to convert KM to Meter because distanceBetweenNodes in meters and speed in seconds
 		// Check battery status
-		if (checkBatteryStatus() < 20) {
+		if (getBatteryLevel() < 20) {
 			info("charging ...")
-			chargeBattery()
+			updateBatteryLevel(50);
+			goCharge();
+			emit(new FullPathUpdateEvent(owner.agentName, owner.fullPath));
 			info("charged !")
 		} else {
 			if (currentNodeIndex >= owner.subPath.size && currentPathIndex < owner.fullPath.size - 1) {
@@ -55,10 +58,15 @@ behavior MovingBehavior {
 		}
 	}
 
+	on chargeStationFoundEvent {
+		info("updated closest " + occurrence.closestStation + " - " + occurrence.stationAgentName)
+		owner.chargeStationNode = occurrence.closestStation;
+	}
+
 }
 
 behavior TrafficSignalBehavior {
-	uses Logging, TrafficSignalManagementCapacity, Schedules;
+	uses DefaultContextInteractions, TrafficSignalManagementCapacity, Schedules;
 
 	val owner : TrafficSignalAgent
 
@@ -71,9 +79,56 @@ behavior TrafficSignalBehavior {
 		var time : long = owner.trafficLightStatus.getLightStatus.duration;
 
 		every(time) [ // every 1000 milliseconds
-			changeColor(owner.trafficLightStatus.getNext());
+			var lightstatus : TrafficLight = owner.trafficLightStatus.getNext();
+			changeColor(lightstatus);
+			emit(new TrafficColorChangedEvent(lightstatus.lightStatus.getImageIconName(), owner.agentName));
 		]
 
+	}
+}
+
+behavior EnvironmentBehavior {
+	uses DefaultContextInteractions, Logging;
+
+	val owner : EnvironmentAgent
+
+	new (owner : EnvironmentAgent) {
+		super(owner);
+		this.owner = owner;
+	}
+
+	// event triggered when the vehicle agent change its current position (node)
+	on AgentUpdateEvent {
+		owner.map.onAgentUpdate(occurrence.current_location_node, occurrence.agentName)
+	}
+
+	// event triggered when the traffic agent spawned to set themselves on the map view
+	on TrafficSignaInitEvent {
+		owner.map.onTrafficAgentInit(occurrence.location, occurrence.agentName, occurrence.color)
+	}
+
+	on TrafficColorChangedEvent {
+		owner.map.onTrafficSignalChanged(occurrence.agentName, occurrence.colorIcon);
+	}
+
+	on ChargeStationInitEvent {
+		owner.chargeStationNodes.add(occurrence.location);
+		owner.map.onChargeStationIniti(occurrence.location, occurrence.agentName);
+	}
+
+	on FullPathUpdateEvent {
+		owner.map.onFullPathUpdate(occurrence.agentName, occurrence.newPath)
+	}
+
+	on FindChargeStationEvent {
+		while (owner.chargeStationNodes.size() < 1) {
+			info("waiting ")
+		};
+		var location = occurrence.currentLocation
+		var closestNode = NodeUtils.findClosestNode(owner.chargeStationNodes, location)
+		emit(new chargeStationFoundEvent(closestNode, owner.map.chargeStationNodes.get(closestNode))) [
+			it == occurrence.source
+		]; 	// to send back the event to the sender
 	}
 
 }

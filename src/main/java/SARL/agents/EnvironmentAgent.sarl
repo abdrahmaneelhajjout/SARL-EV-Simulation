@@ -19,40 +19,48 @@ import io.sarl.core.SpaceDestroyed
 import io.sarl.core.Schedules
 import io.sarl.core.DefaultContextInteractions
 import SARL.map.JXMapViewerFrame
+import java.util.UUID
+import java.util.List
+import SARL.agents.geolocation.mapbox.Node
+import SARL.agents.geolocation.mapbox.NodeUtils
+import java.util.ArrayList
+import javax.accessibility.Accessible
+import org.eclipse.xtend.lib.annotations.Accessors
+import io.sarl.core.Behaviors
+import io.sarl.lang.core.Agent
 
 /** 
  * @author ELHAJJOUT
  * 
  */
-agent EnvironmentAgent {
-	uses Logging, Schedules
+agent EnvironmentAgent extends Agent{
+	uses Logging, Schedules, DefaultContextInteractions, Behaviors
+	
+	// uses GetLocation
 	var timeStep : long;
-	//uses GetLocation
-	var map : JXMapViewerFrame;
-	var currentTimeStep : int = 0
+	@Accessors var map : JXMapViewerFrame;
+
+	@Accessors var currentTimeStep : int = 0
+
+	@Accessors var chargeStationNodes : List<Node> 
 	//var roadNetwork: Graph
 	on Initialize {
+		
+		var envBehav : EnvironmentBehavior = new EnvironmentBehavior(this);
+		registerBehavior(envBehav);
+		chargeStationNodes = new ArrayList();
 		this.timeStep = occurrence.parameters.get(0) as Long;
-		map = new JXMapViewerFrame();
-		every(timeStep) [ // every 1000 milliseconds
+
+		map = new JXMapViewerFrame(occurrence.parameters.get(1) as Node);
+		//the timstep for the 
+		every(timeStep) [ // every 1000 milliseconds 
             emit(new TimeStep(currentTimeStep))
 			currentTimeStep++
 		]
 	}
-	
-	on AgentUpdateEvent {
-		map.onAgentUpdate(occurrence.current_location_node, occurrence.agentName)
-	}
-	
-	on TrafficSignaInitEvent {
-		map.onTrafficAgentInit(occurrence.location, occurrence.agentName)
-	}
 
-	on Initialize {
-		// Event trigger before the agent begin to live or to be used.
-		// You should put all the initialization statements in this block of code.
-		info("The agent was started.")
-	}
+	
+
 
 	on Destroy {
 		// Event trigger when the agent is destroyed from the system.

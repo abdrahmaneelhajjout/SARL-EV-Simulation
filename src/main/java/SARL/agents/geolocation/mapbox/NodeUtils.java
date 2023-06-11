@@ -32,6 +32,21 @@ public class NodeUtils {
 		return nodesBetween;
 	}
 	
+    public static Node findClosestNode(List<Node> nodes, Node targetNode) {
+        double minDistance = Double.MAX_VALUE;
+        Node closestNode = null;
+
+        for (Node node : nodes) {
+            double distance = HaversineDistance.haversine(node, targetNode);
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestNode = node;
+            }
+        }
+
+        return closestNode;
+    }
+	
 	public static <T> List<T> randomSubList(List<T> list, int newSize) {
 	    list = new ArrayList<>(list);
 	    Collections.shuffle(list);

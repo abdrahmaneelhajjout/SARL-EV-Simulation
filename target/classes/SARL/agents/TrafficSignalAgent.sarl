@@ -30,24 +30,25 @@ import io.sarl.core.DefaultContextInteractions
  */
 agent TrafficSignalAgent extends Agent {
 	uses Logging, Behaviors, DefaultContextInteractions;
-	var agentName: String;
+
+	@Accessors var agentName : String;
 	var location : Node;
 	@Accessors var lightStatusTimeList : Map<TrafficLightStatus, Long>;
-
-	@Accessors var trafficLightStatus : TrafficLight = new TrafficLight(TrafficLightStatus.GREEN);
+	@Accessors var trafficLightStatus : TrafficLight;
 	@Accessors var time : float;
 
 	on Initialize {
+		this.trafficLightStatus = new TrafficLight(); // create TrafficLight with random status (green, red, orange)
 		var trafficBehavior : TrafficSignalBehavior = new TrafficSignalBehavior(this);
 		this.agentName = occurrence.parameters.get(0) as String;
 		this.location = occurrence.parameters.get(1) as Node;
 		this.lightStatusTimeList = occurrence.parameters.get(2) as Map;
-
+		setLoggingName(agentName)
 		// change the trffic light's duration in milliseconds
 		trafficLightStatus.lightStatus.RED.setDuration(lightStatusTimeList.get(TrafficLightStatus.RED));
 		trafficLightStatus.lightStatus.GREEN.setDuration(lightStatusTimeList.get(TrafficLightStatus.GREEN));
 		trafficLightStatus.lightStatus.ORANGE.setDuration(lightStatusTimeList.get(TrafficLightStatus.ORANGE));
-		emit(new TrafficSignaInitEvent(location, this.agentName ))
+		emit(new TrafficSignaInitEvent(location, this.agentName, trafficLightStatus.lightStatus))
 		registerBehavior(trafficBehavior)
 	}
 

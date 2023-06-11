@@ -12,6 +12,7 @@ import SARL.agents.geolocation.mapbox.Node
 import java.util.List
 import SARL.agents.TrafficLightStatus
 import SARL.agents.TrafficLight
+import SARL.agents.ChargingCapacitySkill
 
 /** 
  * @author ELHAJJOUT
@@ -20,18 +21,11 @@ import SARL.agents.TrafficLight
 @DefaultSkill(typeof(MovingSkill))
 capacity MovingCapacity {
 	def move(destination : Node)
-
 	def stop()
-
 	def wating()
 }
 
-@DefaultSkill(typeof(BatterySkill))
-capacity BatteryCapacity {
-	def chargeBattery()
 
-	def checkBatteryStatus() : double
-}
 
 @DefaultSkill(typeof(TrafficSignalSkill))
 capacity TrafficSignalManagementCapacity {
@@ -39,8 +33,34 @@ capacity TrafficSignalManagementCapacity {
 }
 
 @DefaultSkill(typeof(GetLocationSkill))
-capacity GetLocation {
+capacity GeoLocationCapacity {
 	def getCurrentLocation() : Node // This will return a pair of latitude and longitude
 
 	def getRouteToDestination(source : Node, destination : Node) : List<Node>
+
+	def getRouteToDestination(source : Node, viaNode: Node ,destination : Node) : List<Node>
+}
+
+@DefaultSkill(typeof(BatterySkill))
+capacity BatteryCapacity {
+	def getBatteryLevel() : int
+
+	def setBatteryLevel(level : int) : void
+
+	def getBatteryCapacity() : int
+}
+
+@DefaultSkill(typeof(ChargingCapacitySkill))
+capacity ChargingCapacity {
+	def getBatteryLevel() : int
+
+	def goCharge() : void
+	
+	def getBatteryCapacity() : int
+
+	def getBatteryChargeCapacity() : int
+
+	def updateBatteryLevel(amount : int) // This method is used to charge the battery
+ 
+	def setBatteryLevel(amount : int) 		// This method is used to decrease the battery level while the vehicle is travelling
 }

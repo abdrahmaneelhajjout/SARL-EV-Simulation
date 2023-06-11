@@ -44,7 +44,6 @@ import SARL.agents.geolocation.overpass.WaysResponseData;
 import static SARL.agents.geolocation.overpass.HaversineDistance.haversine;;
 
 public class GeoLocationService {
-
 	private RawDBDemoGeoIPLocationService locationService = new RawDBDemoGeoIPLocationService();
 
 	public GeoLocationService() throws Exception {
@@ -149,10 +148,10 @@ public class GeoLocationService {
 	}
 
 	public static Pair<SARL.agents.geolocation.mapbox.Node, SARL.agents.geolocation.mapbox.Node> getRandomStartAndDestination(
-			double radiusKm) {
+			SARL.agents.geolocation.mapbox.Node radius_center_location, double radiusKm) {
 		double radiusInDegrees = radiusKm / 111.045;
-		double currentLatitude = getCurrentLocationAsPair().get().getKey();
-		double currentLongitude = getCurrentLocationAsPair().get().getValue();
+		double currentLatitude = radius_center_location.getLatitude();
+		double currentLongitude = radius_center_location.getLongitude();
 
 		double minLat = currentLatitude - radiusInDegrees;
 		double maxLat = currentLatitude + radiusInDegrees;
@@ -172,16 +171,15 @@ public class GeoLocationService {
 		return new Pair<>(start, destination);
 	}
 
-	public static List<SARL.agents.geolocation.mapbox.Node> getTrafficSignsFromOverpass(int radiusInKM)
+	public static List<SARL.agents.geolocation.mapbox.Node> getTrafficSignsFromOverpass(SARL.agents.geolocation.mapbox.Node radius_center_location, int radiusInKM)
 			throws IOException {
 		// Create the Jackson ObjectMapper
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.registerSubtypes(Node.class);
 		mapper.registerSubtypes(Way.class);
 		OkHttpClient client = new OkHttpClient();
-		Pair<Double, Double> locationPair = getCurrentLocationAsPair().get();
-		Double currentLatitude = locationPair.getKey();
-		Double currentLongitude = locationPair.getValue();
+		Double currentLatitude = radius_center_location.getLatitude();
+		Double currentLongitude = radius_center_location.getLongitude();
 
 		String overpassQuery = "[out:json][timeout:3600];" + "node(around:" + (radiusInKM * 1000) + ", "
 				+ currentLatitude + ", " + currentLongitude + ")" + "[highway = \"traffic_signals\"];" + "out body;";
@@ -238,7 +236,7 @@ public class GeoLocationService {
 		return nodesWithinRadius.get(random.nextInt(nodesWithinRadius.size()));
 	}
 
-	public static Optional<List<? extends Element>> getWaysAsWaysListWithinRadius(double radius) throws IOException {
+	public static Optional<List<? extends Element>> getWaysAsWaysListWithinRadius(double radiusInKM) throws IOException {
 		// Create the Jackson ObjectMapper
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -246,7 +244,38 @@ public class GeoLocationService {
 		Pair<Double, Double> location_pair = getCurrentLocationAsPair().get();
 		Double current_latitude = location_pair.getKey();
 		Double current_longitude = location_pair.getValue();
-		String overpassQuery = "[out:json][timeout:3600];" + "way(around:" + radius + ", " + current_latitude + ", "
+		String overpassQuery = "[out:json][timeout:3600];" + "way(around:" + (radiusInKM * 1000) + ", " + current_latitude + ", "
+				+ current_longitude + ")"
+				+ "[building != \"yes\"][highway != \"residential\"][highway != \"footway\"][area != \"yes\"];"
+				+ "(._;>;);" + "out body;";
+		System.out.println(overpassQuery);
+		Request request = new Request.Builder()
+				.url("https://overpass-api.de/api/interpreter?data=" + URLEncoder.encode(overpassQuery, "UTF-8"))
+				.build();
+
+		try (Response response = client.newCall(request).execute()) {
+			ResponseBody jsonData = response.body();
+			if (jsonData != null) {
+				String jsonString = jsonData.string();
+				// Use the Jackson ObjectMapper to deserialize the JSON
+				WaysResponseData responseData = mapper.readValue(jsonString, WaysResponseData.class);
+				if (responseData != null) {
+					return Optional.of(responseData.getElements());
+				}
+			}
+		}
+
+		return Optional.empty();
+	}
+
+	public static Optional<List<? extends Element>> getWaysAsWaysListWithinRadius(SARL.agents.geolocation.mapbox.Node radius_center_location,double radiusInKM) throws IOException {
+		// Create the Jackson ObjectMapper
+		ObjectMapper mapper = new ObjectMapper();
+
+		OkHttpClient client = new OkHttpClient();
+		Double current_latitude = radius_center_location.getLatitude();
+		Double current_longitude = radius_center_location.getLongitude();
+		String overpassQuery = "[out:json][timeout:3600][maxsize:1073741824];" + "way(around:" + (radiusInKM * 1000) + ", " + current_latitude + ", "
 				+ current_longitude + ")"
 				+ "[building != \"yes\"][highway != \"residential\"][highway != \"footway\"][area != \"yes\"];"
 				+ "(._;>;);" + "out body;";
@@ -323,9 +352,37 @@ public class GeoLocationService {
 				"can't find the destination in a radius of " + MAX_RADIUS + " try to increase it");
 	}
 
-	public static Node getRandomNodeFromWayWithinRadius(double radius) throws IOException {
+	public static Node getRandomNodeFromWayWithinRadius(double radiusInKM) throws IOException {
 		// Get ways within the radius
-		List<? extends Element> elements = getWaysAsWaysListWithinRadius(radius).get();
+		List<? extends Element> elements = getWaysAsWaysListWithinRadius(radiusInKM).get();
+
+		// Filter only Way elements
+		List<Way> ways = elements.stream().filter(element -> element instanceof Way).map(element -> (Way) element)
+				.collect(Collectors.toList());
+
+		if (ways.isEmpty()) {
+			return null;
+		}
+
+		// Get a random way
+		Random random = new Random();
+		Way randomWay = ways.get(random.nextInt(ways.size()));
+
+		// Get the nodes of this way
+		List<Node> nodesOfWay = constructWayNodeMap(elements).get(randomWay);
+
+		if (nodesOfWay.isEmpty()) {
+			return null;
+		}
+
+		// Get a random node from the way
+		Node randomNode = nodesOfWay.get(random.nextInt(nodesOfWay.size()));
+
+		return randomNode;
+	}
+	public static Node getRandomNodeFromWayWithinRadius(SARL.agents.geolocation.mapbox.Node radius_center_location, double radiusInKM) throws IOException {
+		// Get ways within the radius
+		List<? extends Element> elements = getWaysAsWaysListWithinRadius(radius_center_location, radiusInKM).get();
 
 		// Filter only Way elements
 		List<Way> ways = elements.stream().filter(element -> element instanceof Way).map(element -> (Way) element)

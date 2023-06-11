@@ -28,14 +28,19 @@ public class BatterySkill extends Skill implements BatteryCapacity {
     this.owner = ((VehiculeAgent) _owner);
   }
   
-  @Override
-  public void chargeBattery() {
-    this.owner.setBatteryLevel(100);
+  public int getBatteryLevel() {
+    return ((this.owner.getBatteryLevel()) == null ? 0 : (this.owner.getBatteryLevel()).intValue());
   }
   
-  @Override
-  public double checkBatteryStatus() {
-    return this.owner.getBatteryLevel();
+  public void setBatteryLevel(final int level) {
+    Integer _batteryLevel = this.owner.getBatteryLevel();
+    if ((level <= _batteryLevel.doubleValue())) {
+      this.owner.setBatteryLevel(Integer.valueOf(level));
+    }
+  }
+  
+  public int getBatteryCapacity() {
+    return ((this.owner.getBatteryCapacity()) == null ? 0 : (this.owner.getBatteryCapacity()).intValue());
   }
   
   @Override

@@ -33,16 +33,6 @@ public class TrafficSignalSkill extends Skill implements TrafficSignalManagement
     this.owner = ((TrafficSignalAgent) _owner);
   }
   
-  public void prepareUninstallation() {
-    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("Preparing the uninstallation of the skill");
-  }
-  
-  public void uninstall() {
-    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("Uninstalling the skill");
-  }
-  
   @Override
   public void changeColor(final TrafficLight newColor) {
     class $AssertEvaluator$ {

@@ -1,17 +1,17 @@
 package SARL.agents;
 
-import SARL.agents.MovingBehavior;
-import SARL.agents.TimeStep;
+import SARL.agents.FullPathUpdateEvent;
+import SARL.agents.VehiculeAgentBehavior;
 import SARL.agents.VehiculeStatus;
-import SARL.agents.capacities.GetLocation;
+import SARL.agents.capacities.GeoLocationCapacity;
 import SARL.agents.geolocation.mapbox.Node;
 import SARL.agents.geolocation.mapbox.NodeUtils;
-import SARL.agents.geolocation.mapbox.RoutingService;
 import io.sarl.core.AgentKilled;
 import io.sarl.core.AgentSpawned;
 import io.sarl.core.Behaviors;
 import io.sarl.core.ContextJoined;
 import io.sarl.core.ContextLeft;
+import io.sarl.core.DefaultContextInteractions;
 import io.sarl.core.Destroy;
 import io.sarl.core.Initialize;
 import io.sarl.core.Logging;
@@ -38,9 +38,7 @@ import java.util.UUID;
 import javafx.util.Pair;
 import javax.inject.Inject;
 import org.eclipse.xtend.lib.annotations.Accessors;
-import org.eclipse.xtext.xbase.lib.Exceptions;
 import org.eclipse.xtext.xbase.lib.Extension;
-import org.eclipse.xtext.xbase.lib.Functions.Function1;
 import org.eclipse.xtext.xbase.lib.Pure;
 
 /**
@@ -75,41 +73,52 @@ public class VehiculeAgent extends Agent {
   private VehiculeStatus status;
   
   @Accessors
-  private double batteryLevel;
+  private Integer batteryLevel;
+  
+  @Accessors
+  private Integer batteryCapacity = Integer.valueOf(2000);
+  
+  @Accessors
+  private Integer batteryChargeCapacity = Integer.valueOf(20);
+  
+  @Accessors
+  private Node chargeStationNode;
   
   private Pair<Node, Node> location_pair;
   
   private void $behaviorUnit$Initialize$0(final Initialize occurrence) {
-    try {
-      Object _get = occurrence.parameters[0];
-      this.agentName = (_get == null ? null : _get.toString());
-      Object _get_1 = occurrence.parameters[1];
-      this.location_pair = ((Pair<Node, Node>) _get_1);
-      Object _get_2 = occurrence.parameters[2];
-      this.speedKmPerHour = ((((Double) _get_2)) == null ? 0 : (((Double) _get_2)).doubleValue());
-      this.startNode = this.location_pair.getKey();
-      this.destinationNode = this.location_pair.getValue();
-      this.fullPath = RoutingService.getRoute(this.startNode, this.destinationNode);
-      this.subPath = NodeUtils.getNodesBetween(this.fullPath.get(0), this.fullPath.get(1), 1000);
-      MovingBehavior moving_behavior = new MovingBehavior(this);
-      Behaviors _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER();
-      final Function1<Event, Boolean> _function = (Event event) -> {
-        return Boolean.valueOf((event instanceof TimeStep));
-      };
-      _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER.registerBehavior(moving_behavior, _function);
-      Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info((("----------------- " + this.agentName) + " ----------------------"));
-      Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1.info("The agent was started.");
-      Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2.info(("from " + this.startNode));
-      Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3.info(("to " + this.destinationNode));
-      Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_4 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-      _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_4.info("------------------------------------------------------------");
-    } catch (Throwable _e) {
-      throw Exceptions.sneakyThrow(_e);
-    }
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info(occurrence.parameters[0]);
+    Object _get = occurrence.parameters[0];
+    this.agentName = (_get == null ? null : _get.toString());
+    Object _get_1 = occurrence.parameters[1];
+    this.location_pair = ((Pair<Node, Node>) _get_1);
+    Object _get_2 = occurrence.parameters[2];
+    this.speedKmPerHour = ((((Double) _get_2)) == null ? 0 : (((Double) _get_2)).doubleValue());
+    this.startNode = this.location_pair.getKey();
+    this.currentLocation = this.location_pair.getKey();
+    this.destinationNode = this.location_pair.getValue();
+    GeoLocationCapacity _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER = this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER();
+    this.fullPath = _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER.getRouteToDestination(this.startNode, this.destinationNode);
+    this.subPath = NodeUtils.getNodesBetween(this.fullPath.get(0), this.fullPath.get(1), 1000);
+    VehiculeAgentBehavior agentBehavior = new VehiculeAgentBehavior(this);
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1.setLoggingName(this.agentName);
+    Behaviors _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER.registerBehavior(agentBehavior);
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2.info((("----------------- " + this.agentName) + " ----------------------"));
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3.info("The agent was started.");
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_4 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_4.info(("from " + this.startNode));
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_5 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_5.info(("to " + this.destinationNode));
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_6 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_6.info("------------------------------------------------------------");
+    DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
+    FullPathUpdateEvent _fullPathUpdateEvent = new FullPathUpdateEvent(this.agentName, this.fullPath);
+    _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_fullPathUpdateEvent);
   }
   
   private void $behaviorUnit$Destroy$1(final Destroy occurrence) {
@@ -179,17 +188,31 @@ public class VehiculeAgent extends Agent {
   }
   
   @Extension
-  @ImportedCapacityFeature(GetLocation.class)
+  @ImportedCapacityFeature(GeoLocationCapacity.class)
   @SyntheticMember
-  private transient AtomicSkillReference $CAPACITY_USE$SARL_AGENTS_CAPACITIES_GETLOCATION;
+  private transient AtomicSkillReference $CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY;
   
   @SyntheticMember
   @Pure
-  private GetLocation $CAPACITY_USE$SARL_AGENTS_CAPACITIES_GETLOCATION$CALLER() {
-    if (this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GETLOCATION == null || this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GETLOCATION.get() == null) {
-      this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GETLOCATION = $getSkill(GetLocation.class);
+  private GeoLocationCapacity $CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER() {
+    if (this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY == null || this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY.get() == null) {
+      this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY = $getSkill(GeoLocationCapacity.class);
     }
-    return $castSkill(GetLocation.class, this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GETLOCATION);
+    return $castSkill(GeoLocationCapacity.class, this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY);
+  }
+  
+  @Extension
+  @ImportedCapacityFeature(DefaultContextInteractions.class)
+  @SyntheticMember
+  private transient AtomicSkillReference $CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS;
+  
+  @SyntheticMember
+  @Pure
+  private DefaultContextInteractions $CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER() {
+    if (this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS == null || this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS.get() == null) {
+      this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS = $getSkill(DefaultContextInteractions.class);
+    }
+    return $castSkill(DefaultContextInteractions.class, this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS);
   }
   
   @SyntheticMember
@@ -418,7 +441,26 @@ public class VehiculeAgent extends Agent {
       return false;
     if (Double.doubleToLongBits(other.speedKmPerHour) != Double.doubleToLongBits(this.speedKmPerHour))
       return false;
-    if (Double.doubleToLongBits(other.batteryLevel) != Double.doubleToLongBits(this.batteryLevel))
+    if (other.batteryLevel == null) {
+      if (this.batteryLevel != null)
+        return false;
+    } else if (this.batteryLevel == null)
+      return false;
+    if (other.batteryLevel != null && other.batteryLevel.intValue() != this.batteryLevel.intValue())
+      return false;
+    if (other.batteryCapacity == null) {
+      if (this.batteryCapacity != null)
+        return false;
+    } else if (this.batteryCapacity == null)
+      return false;
+    if (other.batteryCapacity != null && other.batteryCapacity.intValue() != this.batteryCapacity.intValue())
+      return false;
+    if (other.batteryChargeCapacity == null) {
+      if (this.batteryChargeCapacity != null)
+        return false;
+    } else if (this.batteryChargeCapacity == null)
+      return false;
+    if (other.batteryChargeCapacity != null && other.batteryChargeCapacity.intValue() != this.batteryChargeCapacity.intValue())
       return false;
     return super.equals(obj);
   }
@@ -431,7 +473,9 @@ public class VehiculeAgent extends Agent {
     final int prime = 31;
     result = prime * result + Objects.hashCode(this.agentName);
     result = prime * result + Double.hashCode(this.speedKmPerHour);
-    result = prime * result + Double.hashCode(this.batteryLevel);
+    result = prime * result + Objects.hashCode(this.batteryLevel);
+    result = prime * result + Objects.hashCode(this.batteryCapacity);
+    result = prime * result + Objects.hashCode(this.batteryChargeCapacity);
     return result;
   }
   
@@ -519,11 +563,38 @@ public class VehiculeAgent extends Agent {
   }
   
   @Pure
-  protected double getBatteryLevel() {
+  protected Integer getBatteryLevel() {
     return this.batteryLevel;
   }
   
-  protected void setBatteryLevel(final double batteryLevel) {
+  protected void setBatteryLevel(final Integer batteryLevel) {
     this.batteryLevel = batteryLevel;
+  }
+  
+  @Pure
+  protected Integer getBatteryCapacity() {
+    return this.batteryCapacity;
+  }
+  
+  protected void setBatteryCapacity(final Integer batteryCapacity) {
+    this.batteryCapacity = batteryCapacity;
+  }
+  
+  @Pure
+  protected Integer getBatteryChargeCapacity() {
+    return this.batteryChargeCapacity;
+  }
+  
+  protected void setBatteryChargeCapacity(final Integer batteryChargeCapacity) {
+    this.batteryChargeCapacity = batteryChargeCapacity;
+  }
+  
+  @Pure
+  protected Node getChargeStationNode() {
+    return this.chargeStationNode;
+  }
+  
+  protected void setChargeStationNode(final Node chargeStationNode) {
+    this.chargeStationNode = chargeStationNode;
   }
 }

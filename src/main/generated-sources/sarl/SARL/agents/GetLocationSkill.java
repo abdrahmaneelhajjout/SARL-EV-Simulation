@@ -1,6 +1,6 @@
 package SARL.agents;
 
-import SARL.agents.capacities.GetLocation;
+import SARL.agents.capacities.GeoLocationCapacity;
 import SARL.agents.geolocation.GeoLocationService;
 import SARL.agents.geolocation.mapbox.Node;
 import SARL.agents.geolocation.mapbox.RoutingService;
@@ -18,7 +18,7 @@ import org.eclipse.xtext.xbase.lib.Exceptions;
 @SarlSpecification("0.12")
 @SarlElementType(22)
 @SuppressWarnings("all")
-public class GetLocationSkill extends Skill implements GetLocation {
+public class GetLocationSkill extends Skill implements GeoLocationCapacity {
   @Override
   public Node getCurrentLocation() {
     try {
@@ -40,6 +40,16 @@ public class GetLocationSkill extends Skill implements GetLocation {
   public List<Node> getRouteToDestination(final Node source, final Node destination) {
     try {
       List<Node> path = RoutingService.getRoute(source, destination);
+      return path;
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
+  }
+  
+  @Override
+  public List<Node> getRouteToDestination(final Node source, final Node viaNode, final Node destination) {
+    try {
+      List<Node> path = RoutingService.getRoute(source, viaNode, destination);
       return path;
     } catch (Throwable _e) {
       throw Exceptions.sneakyThrow(_e);

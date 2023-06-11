@@ -6,15 +6,20 @@ import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.core.AgentTrait;
 import io.sarl.lang.core.Capacity;
 import io.sarl.lang.core.DefaultSkill;
+import org.eclipse.xtext.xbase.lib.Pure;
 
 @DefaultSkill(BatterySkill.class)
 @SarlSpecification("0.12")
 @SarlElementType(20)
 @SuppressWarnings("all")
 public interface BatteryCapacity extends Capacity {
-  void chargeBattery();
+  @Pure
+  int getBatteryLevel();
   
-  double checkBatteryStatus();
+  void setBatteryLevel(final int level);
+  
+  @Pure
+  int getBatteryCapacity();
   
   /**
    * @ExcludeFromApidoc
@@ -24,19 +29,28 @@ public interface BatteryCapacity extends Capacity {
       super(capacity, caller);
     }
     
-    public void chargeBattery() {
+    public int getBatteryLevel() {
       try {
         ensureCallerInLocalThread();
-        this.capacity.chargeBattery();
+        return this.capacity.getBatteryLevel();
       } finally {
         resetCallerInLocalThread();
       }
     }
     
-    public double checkBatteryStatus() {
+    public void setBatteryLevel(final int level) {
       try {
         ensureCallerInLocalThread();
-        return this.capacity.checkBatteryStatus();
+        this.capacity.setBatteryLevel(level);
+      } finally {
+        resetCallerInLocalThread();
+      }
+    }
+    
+    public int getBatteryCapacity() {
+      try {
+        ensureCallerInLocalThread();
+        return this.capacity.getBatteryCapacity();
       } finally {
         resetCallerInLocalThread();
       }
