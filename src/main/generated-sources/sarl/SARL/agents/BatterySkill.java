@@ -1,6 +1,6 @@
 package SARL.agents;
 
-import SARL.agents.VehiculeAgent;
+import SARL.agents.VehicleAgent;
 import SARL.agents.capacities.BatteryCapacity;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
@@ -13,7 +13,7 @@ import org.eclipse.xtext.xbase.lib.Pure;
 @SarlElementType(22)
 @SuppressWarnings("all")
 public class BatterySkill extends Skill implements BatteryCapacity {
-  private VehiculeAgent owner;
+  private VehicleAgent owner;
   
   public void install() {
     class $AssertEvaluator$ {
@@ -25,7 +25,7 @@ public class BatterySkill extends Skill implements BatteryCapacity {
     }
     assert new $AssertEvaluator$().$$result;
     Agent _owner = this.getOwner();
-    this.owner = ((VehiculeAgent) _owner);
+    this.owner = ((VehicleAgent) _owner);
   }
   
   public int getBatteryLevel() {

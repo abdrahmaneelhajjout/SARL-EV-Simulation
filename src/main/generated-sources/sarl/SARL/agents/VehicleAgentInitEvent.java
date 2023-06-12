@@ -1,0 +1,69 @@
+package SARL.agents;
+
+import SARL.agents.geolocation.mapbox.Node;
+import io.sarl.lang.annotation.SarlElementType;
+import io.sarl.lang.annotation.SarlSpecification;
+import io.sarl.lang.annotation.SyntheticMember;
+import io.sarl.lang.core.Event;
+import java.util.List;
+import java.util.Objects;
+import org.eclipse.xtext.xbase.lib.Pure;
+import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
+
+@SarlSpecification("0.12")
+@SarlElementType(15)
+@SuppressWarnings("all")
+public class VehicleAgentInitEvent extends Event {
+  public final Node initial_location_node;
+  
+  public final String agentName;
+  
+  public final List<Node> path;
+  
+  public VehicleAgentInitEvent(final Node initial_location_node, final String agentName, final List<Node> path) {
+    this.initial_location_node = initial_location_node;
+    this.agentName = agentName;
+    this.path = path;
+  }
+  
+  @Override
+  @Pure
+  @SyntheticMember
+  public boolean equals(final Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    VehicleAgentInitEvent other = (VehicleAgentInitEvent) obj;
+    if (!Objects.equals(this.agentName, other.agentName))
+      return false;
+    return super.equals(obj);
+  }
+  
+  @Override
+  @Pure
+  @SyntheticMember
+  public int hashCode() {
+    int result = super.hashCode();
+    final int prime = 31;
+    result = prime * result + Objects.hashCode(this.agentName);
+    return result;
+  }
+  
+  /**
+   * Returns a String representation of the VehicleAgentInitEvent event's attributes only.
+   */
+  @SyntheticMember
+  @Pure
+  protected void toString(final ToStringBuilder builder) {
+    super.toString(builder);
+    builder.add("initial_location_node", this.initial_location_node);
+    builder.add("agentName", this.agentName);
+    builder.add("path", this.path);
+  }
+  
+  @SyntheticMember
+  private static final long serialVersionUID = -1695253516L;
+}

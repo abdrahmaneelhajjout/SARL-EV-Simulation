@@ -4,7 +4,7 @@ import SARL.agents.capacities.MovingCapacity
 import SARL.agents.capacities.BatteryCapacity
 import SARL.agents.capacities.TrafficSignalManagementCapacity
 import SARL.agents.TimeStep
-import SARL.agents.VehiculeAgent
+import SARL.agents.VehicleAgent
 import io.sarl.core.Logging
 import static SARL.agents.geolocation.mapbox.NodeUtils.getNodesBetween;
 import io.sarl.core.Initialize
@@ -15,18 +15,20 @@ import SARL.agents.capacities.GeoLocationCapacity
 import SARL.agents.geolocation.mapbox.NodeUtils
 
 // Behavior
-behavior VehiculeAgentBehavior {
+behavior VehicleAgentBehavior {
 	uses Logging, MovingCapacity, ChargingCapacity, DefaultContextInteractions
 
-	val owner : VehiculeAgent
+	val owner : VehicleAgent
 	var currentNodeIndex : int = 0
 	var currentPathIndex : int = 0
 	var distanceBetweenNodes : double;
 
-	new (owner : VehiculeAgent) {
+	new (owner : VehicleAgent) {
 		super(owner)
 		this.owner = owner
 	}
+
+	
 
 	// React to the TimeStep event
 	on TimeStep {
@@ -88,7 +90,7 @@ behavior TrafficSignalBehavior {
 }
 
 behavior EnvironmentBehavior {
-	uses DefaultContextInteractions, Logging;
+	uses DefaultContextInteractions, Logging, Schedules;
 
 	val owner : EnvironmentAgent
 
@@ -97,9 +99,27 @@ behavior EnvironmentBehavior {
 		this.owner = owner;
 	}
 
+	on VehicleAgentInitEvent{
+		owner.map.OnVehicleAgentInit(occurrence.initial_location_node, occurrence.agentName, occurrence.path)
+	}
 	// event triggered when the vehicle agent change its current position (node)
-	on AgentUpdateEvent {
-		owner.map.onAgentUpdate(occurrence.current_location_node, occurrence.agentName)
+	on VehicleAgentUpdateEvent {
+		owner.map.onVehicleAgentUpdate(occurrence.current_location_node, occurrence.agentName)
+	}
+
+	on TimeStepChangedEvent {
+		info("changed time step")
+		// cancel the previous task
+		cancel(owner.timeStepTask)
+		// update the time step
+		owner.timeStep = occurrence.timeStep
+		if (owner.timeStep > 0) {
+			// start a new task with the new time step
+			owner.timeStepTask = every(owner.timeStep) [
+				emit(new TimeStep(owner.currentTimeStep))
+			]
+		}
+
 	}
 
 	// event triggered when the traffic agent spawned to set themselves on the map view

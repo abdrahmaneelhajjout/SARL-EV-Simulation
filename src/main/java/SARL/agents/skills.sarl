@@ -1,6 +1,6 @@
 package SARL.agents
 
-import SARL.agents.VehiculeAgent;
+import SARL.agents.VehicleAgent;
 import SARL.agents.TrafficSignalAgent;
 
 import SARL.agents.capacities.MovingCapacity;
@@ -20,19 +20,19 @@ import SARL.agents.capacities.ChargingCapacity
 skill MovingSkill implements MovingCapacity {
 	uses Logging, DefaultContextInteractions;
 
-	var owner : VehiculeAgent
+	var owner : VehicleAgent
 
 	def install {
 		// Initialization of the skill
 		assert getOwner !== null
-		this.owner = getOwner as VehiculeAgent
+		this.owner = getOwner as VehicleAgent
 
 	}
 
 	override move(currentNode : Node) {
 		if (owner.status == VehiculeStatus.moving) {
 			owner.currentLocation = currentNode
-			emit(new AgentUpdateEvent(currentNode, owner.agentName))
+			emit(new VehicleAgentUpdateEvent(currentNode, owner.agentName))
 		}
 	}
 
@@ -88,11 +88,11 @@ skill TrafficSignalSkill implements TrafficSignalManagementCapacity {
 }
 
 skill BatterySkill implements BatteryCapacity {
-	var  owner : VehiculeAgent;
+	var owner : VehicleAgent;
 
 	def install {
 		assert getOwner !== null
-		this.owner = getOwner as VehiculeAgent
+		this.owner = getOwner as VehicleAgent
 	}
 
 	def getBatteryLevel : int {
@@ -113,11 +113,11 @@ skill BatterySkill implements BatteryCapacity {
 skill ChargingCapacitySkill implements ChargingCapacity {
 	uses GeoLocationCapacity, DefaultContextInteractions, Logging;
 
-	var owner : VehiculeAgent
+	var owner : VehicleAgent
 
 	def install {
 		assert getOwner !== null
-		this.owner = getOwner as VehiculeAgent
+		this.owner = getOwner as VehicleAgent
 	}
 
 	def getBatteryLevel() : int {
@@ -127,37 +127,36 @@ skill ChargingCapacitySkill implements ChargingCapacity {
 	def goCharge() : void {
 
 		emit(
-			new FindChargeStationEvent((getOwner as VehiculeAgent).currentLocation,
-				(getOwner as VehiculeAgent).destinationNode,
-				owner.batteryLevel))
+			new FindChargeStationEvent((getOwner as VehicleAgent).currentLocation,
+				(getOwner as VehicleAgent).destinationNode, owner.batteryLevel))
 		var closestChagreStationNode : Node;
-		while ((closestChagreStationNode = (getOwner as VehiculeAgent).chargeStationNode) == null) {
+		while ((closestChagreStationNode = (getOwner as VehicleAgent).chargeStationNode) == null) {
 		};
-		info(owner.agentName+" - "+closestChagreStationNode)
-		owner.fullPath = getRouteToDestination((getOwner as VehiculeAgent).currentLocation, closestChagreStationNode,
+		info(owner.agentName + " - " + closestChagreStationNode)
+		owner.fullPath = getRouteToDestination((getOwner as VehicleAgent).currentLocation, closestChagreStationNode,
 			owner.destinationNode)
 	}
 
 	def getBatteryCapacity() : int {
-		return (getOwner as VehiculeAgent).batteryCapacity
+		return (getOwner as VehicleAgent).batteryCapacity
 	}
 
 	def getBatteryChargeCapacity() : int {
-		return (getOwner as VehiculeAgent).batteryChargeCapacity
+		return (getOwner as VehicleAgent).batteryChargeCapacity
 	}
 
 	def updateBatteryLevel(amount : int) {
-		var newLevel = (getOwner as VehiculeAgent).batteryLevel + amount
-		if (newLevel > (getOwner as VehiculeAgent).batteryCapacity) {
-			(getOwner as VehiculeAgent).batteryLevel = (getOwner as VehiculeAgent).batteryCapacity
+		var newLevel = (getOwner as VehicleAgent).batteryLevel + amount
+		if (newLevel > (getOwner as VehicleAgent).batteryCapacity) {
+			(getOwner as VehicleAgent).batteryLevel = (getOwner as VehicleAgent).batteryCapacity
 		} else {
-			(getOwner as VehiculeAgent).batteryLevel = newLevel
+			(getOwner as VehicleAgent).batteryLevel = newLevel
 		}
 	}
 
 	def setBatteryLevel(amount : int) {
-		if (amount >= 0 && amount <= (getOwner as VehiculeAgent).batteryCapacity) {
-			(getOwner as VehiculeAgent).batteryLevel = amount
+		if (amount >= 0 && amount <= (getOwner as VehicleAgent).batteryCapacity) {
+			(getOwner as VehicleAgent).batteryLevel = amount
 		} else {
 			throw new Exception("Invalid battery level. Battery level should be between 0 and battery capacity.")
 		}

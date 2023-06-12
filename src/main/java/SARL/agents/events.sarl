@@ -5,14 +5,25 @@ import java.util.UUID
 import java.util.List
 
 event TimeStep {
-	val step : int // secondes
+	val step : long // in seconds
 
-	new (step : int = 1) {
+	new (step : long = 1) {
 		this.step = step
 	}
 }
 
-event AgentUpdateEvent {
+event VehicleAgentInitEvent {
+	val initial_location_node : Node
+	val agentName : String;
+	val path : List<Node>;
+	new (initial_location_node : Node, agentName : String, path : List<Node>) {
+		this.initial_location_node = initial_location_node;
+		this.agentName = agentName;
+		this.path = path;
+
+	}
+}
+event VehicleAgentUpdateEvent {
 	val current_location_node : Node
 	val agentName : String;
 
@@ -22,6 +33,8 @@ event AgentUpdateEvent {
 
 	}
 }
+
+
 
 event TrafficSignaInitEvent {
 	val location : Node
@@ -55,21 +68,21 @@ event ChargeRequestEvent {
 
 event FindChargeStationEvent {
 	val currentBatteryLevel : int
-	val currentLocation: Node
-	val destination: Node
-	
+	val currentLocation : Node
+	val destination : Node
+
 	new (currentLocation : Node, destination : Node, currentBatteryLevel : int) {
 		this.currentLocation = currentLocation
 		this.destination = destination
 		this.currentBatteryLevel = currentBatteryLevel
-	}	
+	}
 }
 
 event FullPathUpdateEvent {
 	val agentName : String
 	val newPath : List<Node>
-	
-	new (agentName : String, newPath : List<Node>){
+
+	new (agentName : String, newPath : List<Node>) {
 		this.agentName = agentName;
 		this.newPath = newPath
 	}
@@ -77,22 +90,21 @@ event FullPathUpdateEvent {
 
 event VehicleAgentCreatedEvent {
 	val agentName : String
+
 	new (agentName : String) {
 		this.agentName = agentName;
 	}
 }
 
-
-
 event chargeStationFoundEvent {
 	val closestStation : Node;
 	val stationAgentName : String;
+
 	new (closestStation : Node, stationAgentName : String) {
 		this.closestStation = closestStation;
 		this.stationAgentName = stationAgentName;
 	}
 }
-
 
 event ChargeFinished {
 	var vehicleId : UUID
@@ -101,8 +113,17 @@ event ChargeFinished {
 event ChargeStationInitEvent {
 	val agentName : String
 	val location : Node
+
 	new (location : Node, agentName : String) {
 		this.location = location;
 		this.agentName = agentName
+	}
+}
+
+event TimeStepChangedEvent {
+	val timeStep : Long
+
+	new(timeStep : Long) {
+		this.timeStep = timeStep
 	}
 }

@@ -1,24 +1,29 @@
 package SARL.agents;
 
-import SARL.agents.AgentUpdateEvent;
 import SARL.agents.ChargeStationInitEvent;
 import SARL.agents.EnvironmentAgent;
 import SARL.agents.FindChargeStationEvent;
 import SARL.agents.FullPathUpdateEvent;
+import SARL.agents.TimeStep;
+import SARL.agents.TimeStepChangedEvent;
 import SARL.agents.TrafficColorChangedEvent;
 import SARL.agents.TrafficSignaInitEvent;
+import SARL.agents.VehicleAgentInitEvent;
+import SARL.agents.VehicleAgentUpdateEvent;
 import SARL.agents.chargeStationFoundEvent;
 import SARL.agents.geolocation.mapbox.Node;
 import SARL.agents.geolocation.mapbox.NodeUtils;
 import com.google.common.base.Objects;
 import io.sarl.core.DefaultContextInteractions;
 import io.sarl.core.Logging;
+import io.sarl.core.Schedules;
 import io.sarl.lang.annotation.ImportedCapacityFeature;
 import io.sarl.lang.annotation.PerceptGuardEvaluator;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
 import io.sarl.lang.core.Address;
+import io.sarl.lang.core.Agent;
 import io.sarl.lang.core.AtomicSkillReference;
 import io.sarl.lang.core.Behavior;
 import io.sarl.lang.core.Event;
@@ -28,6 +33,7 @@ import java.io.ObjectStreamException;
 import java.util.Collection;
 import java.util.Set;
 import org.eclipse.xtext.xbase.lib.Extension;
+import org.eclipse.xtext.xbase.lib.Procedures.Procedure1;
 import org.eclipse.xtext.xbase.lib.Pure;
 
 @SarlSpecification("0.12")
@@ -41,28 +47,51 @@ public class EnvironmentBehavior extends Behavior {
     this.owner = owner;
   }
   
-  private void $behaviorUnit$AgentUpdateEvent$0(final AgentUpdateEvent occurrence) {
-    this.owner.getMap().onAgentUpdate(occurrence.current_location_node, occurrence.agentName);
+  private void $behaviorUnit$VehicleAgentInitEvent$0(final VehicleAgentInitEvent occurrence) {
+    this.owner.getMap().OnVehicleAgentInit(occurrence.initial_location_node, occurrence.agentName, occurrence.path);
   }
   
-  private void $behaviorUnit$TrafficSignaInitEvent$1(final TrafficSignaInitEvent occurrence) {
+  private void $behaviorUnit$VehicleAgentUpdateEvent$1(final VehicleAgentUpdateEvent occurrence) {
+    this.owner.getMap().onVehicleAgentUpdate(occurrence.current_location_node, occurrence.agentName);
+  }
+  
+  private void $behaviorUnit$TimeStepChangedEvent$2(final TimeStepChangedEvent occurrence) {
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("changed time step");
+    Schedules _$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER.cancel(this.owner.getTimeStepTask());
+    this.owner.setTimeStep(((occurrence.timeStep) == null ? 0 : (occurrence.timeStep).longValue()));
+    long _timeStep = this.owner.getTimeStep();
+    if ((_timeStep > 0)) {
+      Schedules _$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER_1 = this.$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER();
+      final Procedure1<Agent> _function = (Agent it) -> {
+        DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
+        long _currentTimeStep = this.owner.getCurrentTimeStep();
+        TimeStep _timeStep_1 = new TimeStep(_currentTimeStep);
+        _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_timeStep_1);
+      };
+      this.owner.setTimeStepTask(_$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER_1.every(this.owner.getTimeStep(), _function));
+    }
+  }
+  
+  private void $behaviorUnit$TrafficSignaInitEvent$3(final TrafficSignaInitEvent occurrence) {
     this.owner.getMap().onTrafficAgentInit(occurrence.location, occurrence.agentName, occurrence.color);
   }
   
-  private void $behaviorUnit$TrafficColorChangedEvent$2(final TrafficColorChangedEvent occurrence) {
+  private void $behaviorUnit$TrafficColorChangedEvent$4(final TrafficColorChangedEvent occurrence) {
     this.owner.getMap().onTrafficSignalChanged(occurrence.agentName, occurrence.colorIcon);
   }
   
-  private void $behaviorUnit$ChargeStationInitEvent$3(final ChargeStationInitEvent occurrence) {
+  private void $behaviorUnit$ChargeStationInitEvent$5(final ChargeStationInitEvent occurrence) {
     this.owner.getChargeStationNodes().add(occurrence.location);
     this.owner.getMap().onChargeStationIniti(occurrence.location, occurrence.agentName);
   }
   
-  private void $behaviorUnit$FullPathUpdateEvent$4(final FullPathUpdateEvent occurrence) {
+  private void $behaviorUnit$FullPathUpdateEvent$6(final FullPathUpdateEvent occurrence) {
     this.owner.getMap().onFullPathUpdate(occurrence.agentName, occurrence.newPath);
   }
   
-  private void $behaviorUnit$FindChargeStationEvent$5(final FindChargeStationEvent occurrence) {
+  private void $behaviorUnit$FindChargeStationEvent$7(final FindChargeStationEvent occurrence) {
     while ((this.owner.getChargeStationNodes().size() < 1)) {
       Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
       _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("waiting ");
@@ -126,20 +155,42 @@ public class EnvironmentBehavior extends Behavior {
     return $castSkill(Logging.class, this.$CAPACITY_USE$IO_SARL_CORE_LOGGING);
   }
   
+  @Extension
+  @ImportedCapacityFeature(Schedules.class)
+  @SyntheticMember
+  private transient AtomicSkillReference $CAPACITY_USE$IO_SARL_CORE_SCHEDULES;
+  
+  @SyntheticMember
+  @Pure
+  private Schedules $CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER() {
+    if (this.$CAPACITY_USE$IO_SARL_CORE_SCHEDULES == null || this.$CAPACITY_USE$IO_SARL_CORE_SCHEDULES.get() == null) {
+      this.$CAPACITY_USE$IO_SARL_CORE_SCHEDULES = $getSkill(Schedules.class);
+    }
+    return $castSkill(Schedules.class, this.$CAPACITY_USE$IO_SARL_CORE_SCHEDULES);
+  }
+  
   @SyntheticMember
   @PerceptGuardEvaluator
   private void $guardEvaluator$FindChargeStationEvent(final FindChargeStationEvent occurrence, final Collection<Runnable> ___SARLlocal_runnableCollection) {
     assert occurrence != null;
     assert ___SARLlocal_runnableCollection != null;
-    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$FindChargeStationEvent$5(occurrence));
+    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$FindChargeStationEvent$7(occurrence));
   }
   
   @SyntheticMember
   @PerceptGuardEvaluator
-  private void $guardEvaluator$AgentUpdateEvent(final AgentUpdateEvent occurrence, final Collection<Runnable> ___SARLlocal_runnableCollection) {
+  private void $guardEvaluator$VehicleAgentUpdateEvent(final VehicleAgentUpdateEvent occurrence, final Collection<Runnable> ___SARLlocal_runnableCollection) {
     assert occurrence != null;
     assert ___SARLlocal_runnableCollection != null;
-    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$AgentUpdateEvent$0(occurrence));
+    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$VehicleAgentUpdateEvent$1(occurrence));
+  }
+  
+  @SyntheticMember
+  @PerceptGuardEvaluator
+  private void $guardEvaluator$TimeStepChangedEvent(final TimeStepChangedEvent occurrence, final Collection<Runnable> ___SARLlocal_runnableCollection) {
+    assert occurrence != null;
+    assert ___SARLlocal_runnableCollection != null;
+    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$TimeStepChangedEvent$2(occurrence));
   }
   
   @SyntheticMember
@@ -147,7 +198,15 @@ public class EnvironmentBehavior extends Behavior {
   private void $guardEvaluator$TrafficSignaInitEvent(final TrafficSignaInitEvent occurrence, final Collection<Runnable> ___SARLlocal_runnableCollection) {
     assert occurrence != null;
     assert ___SARLlocal_runnableCollection != null;
-    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$TrafficSignaInitEvent$1(occurrence));
+    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$TrafficSignaInitEvent$3(occurrence));
+  }
+  
+  @SyntheticMember
+  @PerceptGuardEvaluator
+  private void $guardEvaluator$VehicleAgentInitEvent(final VehicleAgentInitEvent occurrence, final Collection<Runnable> ___SARLlocal_runnableCollection) {
+    assert occurrence != null;
+    assert ___SARLlocal_runnableCollection != null;
+    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$VehicleAgentInitEvent$0(occurrence));
   }
   
   @SyntheticMember
@@ -155,7 +214,7 @@ public class EnvironmentBehavior extends Behavior {
   private void $guardEvaluator$ChargeStationInitEvent(final ChargeStationInitEvent occurrence, final Collection<Runnable> ___SARLlocal_runnableCollection) {
     assert occurrence != null;
     assert ___SARLlocal_runnableCollection != null;
-    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$ChargeStationInitEvent$3(occurrence));
+    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$ChargeStationInitEvent$5(occurrence));
   }
   
   @SyntheticMember
@@ -163,7 +222,7 @@ public class EnvironmentBehavior extends Behavior {
   private void $guardEvaluator$FullPathUpdateEvent(final FullPathUpdateEvent occurrence, final Collection<Runnable> ___SARLlocal_runnableCollection) {
     assert occurrence != null;
     assert ___SARLlocal_runnableCollection != null;
-    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$FullPathUpdateEvent$4(occurrence));
+    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$FullPathUpdateEvent$6(occurrence));
   }
   
   @SyntheticMember
@@ -171,27 +230,26 @@ public class EnvironmentBehavior extends Behavior {
   private void $guardEvaluator$TrafficColorChangedEvent(final TrafficColorChangedEvent occurrence, final Collection<Runnable> ___SARLlocal_runnableCollection) {
     assert occurrence != null;
     assert ___SARLlocal_runnableCollection != null;
-    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$TrafficColorChangedEvent$2(occurrence));
+    ___SARLlocal_runnableCollection.add(() -> $behaviorUnit$TrafficColorChangedEvent$4(occurrence));
   }
   
   @SyntheticMember
   @Override
   public void $getSupportedEvents(final Set<Class<? extends Event>> toBeFilled) {
     super.$getSupportedEvents(toBeFilled);
-    toBeFilled.add(AgentUpdateEvent.class);
     toBeFilled.add(ChargeStationInitEvent.class);
     toBeFilled.add(FindChargeStationEvent.class);
     toBeFilled.add(FullPathUpdateEvent.class);
+    toBeFilled.add(TimeStepChangedEvent.class);
     toBeFilled.add(TrafficColorChangedEvent.class);
     toBeFilled.add(TrafficSignaInitEvent.class);
+    toBeFilled.add(VehicleAgentInitEvent.class);
+    toBeFilled.add(VehicleAgentUpdateEvent.class);
   }
   
   @SyntheticMember
   @Override
   public boolean $isSupportedEvent(final Class<? extends Event> event) {
-    if (AgentUpdateEvent.class.isAssignableFrom(event)) {
-      return true;
-    }
     if (ChargeStationInitEvent.class.isAssignableFrom(event)) {
       return true;
     }
@@ -201,10 +259,19 @@ public class EnvironmentBehavior extends Behavior {
     if (FullPathUpdateEvent.class.isAssignableFrom(event)) {
       return true;
     }
+    if (TimeStepChangedEvent.class.isAssignableFrom(event)) {
+      return true;
+    }
     if (TrafficColorChangedEvent.class.isAssignableFrom(event)) {
       return true;
     }
     if (TrafficSignaInitEvent.class.isAssignableFrom(event)) {
+      return true;
+    }
+    if (VehicleAgentInitEvent.class.isAssignableFrom(event)) {
+      return true;
+    }
+    if (VehicleAgentUpdateEvent.class.isAssignableFrom(event)) {
       return true;
     }
     return false;
@@ -214,10 +281,6 @@ public class EnvironmentBehavior extends Behavior {
   @Override
   public void $evaluateBehaviorGuards(final Object event, final Collection<Runnable> callbacks) {
     super.$evaluateBehaviorGuards(event, callbacks);
-    if (event instanceof AgentUpdateEvent) {
-      final AgentUpdateEvent occurrence = (AgentUpdateEvent) event;
-      $guardEvaluator$AgentUpdateEvent(occurrence, callbacks);
-    }
     if (event instanceof ChargeStationInitEvent) {
       final ChargeStationInitEvent occurrence = (ChargeStationInitEvent) event;
       $guardEvaluator$ChargeStationInitEvent(occurrence, callbacks);
@@ -230,6 +293,10 @@ public class EnvironmentBehavior extends Behavior {
       final FullPathUpdateEvent occurrence = (FullPathUpdateEvent) event;
       $guardEvaluator$FullPathUpdateEvent(occurrence, callbacks);
     }
+    if (event instanceof TimeStepChangedEvent) {
+      final TimeStepChangedEvent occurrence = (TimeStepChangedEvent) event;
+      $guardEvaluator$TimeStepChangedEvent(occurrence, callbacks);
+    }
     if (event instanceof TrafficColorChangedEvent) {
       final TrafficColorChangedEvent occurrence = (TrafficColorChangedEvent) event;
       $guardEvaluator$TrafficColorChangedEvent(occurrence, callbacks);
@@ -237,6 +304,14 @@ public class EnvironmentBehavior extends Behavior {
     if (event instanceof TrafficSignaInitEvent) {
       final TrafficSignaInitEvent occurrence = (TrafficSignaInitEvent) event;
       $guardEvaluator$TrafficSignaInitEvent(occurrence, callbacks);
+    }
+    if (event instanceof VehicleAgentInitEvent) {
+      final VehicleAgentInitEvent occurrence = (VehicleAgentInitEvent) event;
+      $guardEvaluator$VehicleAgentInitEvent(occurrence, callbacks);
+    }
+    if (event instanceof VehicleAgentUpdateEvent) {
+      final VehicleAgentUpdateEvent occurrence = (VehicleAgentUpdateEvent) event;
+      $guardEvaluator$VehicleAgentUpdateEvent(occurrence, callbacks);
     }
   }
   

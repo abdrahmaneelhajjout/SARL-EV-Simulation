@@ -15,10 +15,10 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 @SarlElementType(15)
 @SuppressWarnings("all")
 public class TimeStep extends Event {
-  public final int step;
+  public final long step;
   
   @DefaultValueSource
-  public TimeStep(@DefaultValue("SARL.agents.TimeStep#NEW_0") final int step) {
+  public TimeStep(@DefaultValue("SARL.agents.TimeStep#NEW_0") final long step) {
     this.step = step;
   }
   
@@ -28,11 +28,11 @@ public class TimeStep extends Event {
   @Pure
   @SyntheticMember
   @SarlSourceCode("1")
-  private static int $DEFAULT_VALUE$NEW_0() {
+  private static long $DEFAULT_VALUE$NEW_0() {
     return 1;
   }
   
-  @DefaultValueUse("int")
+  @DefaultValueUse("long")
   @SyntheticMember
   public TimeStep() {
     this($DEFAULT_VALUE$NEW_0());
@@ -60,7 +60,7 @@ public class TimeStep extends Event {
   public int hashCode() {
     int result = super.hashCode();
     final int prime = 31;
-    result = prime * result + Integer.hashCode(this.step);
+    result = prime * result + Long.hashCode(this.step);
     return result;
   }
   
@@ -75,5 +75,5 @@ public class TimeStep extends Event {
   }
   
   @SyntheticMember
-  private static final long serialVersionUID = 595254097L;
+  private static final long serialVersionUID = 698395889L;
 }

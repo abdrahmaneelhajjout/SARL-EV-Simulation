@@ -1,7 +1,7 @@
 package SARL.agents;
 
-import SARL.agents.FullPathUpdateEvent;
-import SARL.agents.VehiculeAgentBehavior;
+import SARL.agents.VehicleAgentBehavior;
+import SARL.agents.VehicleAgentInitEvent;
 import SARL.agents.VehiculeStatus;
 import SARL.agents.capacities.GeoLocationCapacity;
 import SARL.agents.geolocation.mapbox.Node;
@@ -47,7 +47,7 @@ import org.eclipse.xtext.xbase.lib.Pure;
 @SuppressWarnings("unused_private_member")
 @SarlSpecification("0.12")
 @SarlElementType(19)
-public class VehiculeAgent extends Agent {
+public class VehicleAgent extends Agent {
   @Accessors
   private String agentName;
   
@@ -87,8 +87,6 @@ public class VehiculeAgent extends Agent {
   private Pair<Node, Node> location_pair;
   
   private void $behaviorUnit$Initialize$0(final Initialize occurrence) {
-    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info(occurrence.parameters[0]);
     Object _get = occurrence.parameters[0];
     this.agentName = (_get == null ? null : _get.toString());
     Object _get_1 = occurrence.parameters[1];
@@ -101,24 +99,24 @@ public class VehiculeAgent extends Agent {
     GeoLocationCapacity _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER = this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER();
     this.fullPath = _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER.getRouteToDestination(this.startNode, this.destinationNode);
     this.subPath = NodeUtils.getNodesBetween(this.fullPath.get(0), this.fullPath.get(1), 1000);
-    VehiculeAgentBehavior agentBehavior = new VehiculeAgentBehavior(this);
-    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1.setLoggingName(this.agentName);
+    DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
+    VehicleAgentInitEvent _vehicleAgentInitEvent = new VehicleAgentInitEvent(this.currentLocation, this.agentName, this.fullPath);
+    _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_vehicleAgentInitEvent);
+    VehicleAgentBehavior agentBehavior = new VehicleAgentBehavior(this);
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.setLoggingName(this.agentName);
     Behaviors _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER();
     _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER.registerBehavior(agentBehavior);
+    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1.info((("----------------- " + this.agentName) + " ----------------------"));
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2.info((("----------------- " + this.agentName) + " ----------------------"));
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_2.info("The agent was started.");
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3.info("The agent was started.");
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_3.info(("from " + this.startNode));
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_4 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_4.info(("from " + this.startNode));
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_4.info(("to " + this.destinationNode));
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_5 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_5.info(("to " + this.destinationNode));
-    Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_6 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_6.info("------------------------------------------------------------");
-    DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
-    FullPathUpdateEvent _fullPathUpdateEvent = new FullPathUpdateEvent(this.agentName, this.fullPath);
-    _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_fullPathUpdateEvent);
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_5.info("------------------------------------------------------------");
   }
   
   private void $behaviorUnit$Destroy$1(final Destroy occurrence) {
@@ -436,7 +434,7 @@ public class VehiculeAgent extends Agent {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    VehiculeAgent other = (VehiculeAgent) obj;
+    VehicleAgent other = (VehicleAgent) obj;
     if (!Objects.equals(this.agentName, other.agentName))
       return false;
     if (Double.doubleToLongBits(other.speedKmPerHour) != Double.doubleToLongBits(this.speedKmPerHour))
@@ -480,13 +478,13 @@ public class VehiculeAgent extends Agent {
   }
   
   @SyntheticMember
-  public VehiculeAgent(final UUID parentID, final UUID agentID) {
+  public VehicleAgent(final UUID parentID, final UUID agentID) {
     super(parentID, agentID);
   }
   
   @SyntheticMember
   @Inject
-  public VehiculeAgent(final UUID parentID, final UUID agentID, final DynamicSkillProvider skillProvider) {
+  public VehicleAgent(final UUID parentID, final UUID agentID, final DynamicSkillProvider skillProvider) {
     super(parentID, agentID, skillProvider);
   }
   

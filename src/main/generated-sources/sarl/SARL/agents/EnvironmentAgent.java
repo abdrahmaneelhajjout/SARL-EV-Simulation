@@ -6,6 +6,7 @@ import SARL.agents.geolocation.mapbox.Node;
 import SARL.map.JXMapViewerFrame;
 import io.sarl.core.AgentKilled;
 import io.sarl.core.AgentSpawned;
+import io.sarl.core.AgentTask;
 import io.sarl.core.Behaviors;
 import io.sarl.core.ContextJoined;
 import io.sarl.core.ContextLeft;
@@ -26,6 +27,7 @@ import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
 import io.sarl.lang.core.Agent;
+import io.sarl.lang.core.AgentContext;
 import io.sarl.lang.core.AtomicSkillReference;
 import io.sarl.lang.core.DynamicSkillProvider;
 import io.sarl.lang.core.Event;
@@ -47,16 +49,20 @@ import org.eclipse.xtext.xbase.lib.Pure;
 @SarlElementType(19)
 @SuppressWarnings("all")
 public class EnvironmentAgent extends Agent {
+  @Accessors
   private long timeStep;
   
   @Accessors
   private JXMapViewerFrame map;
   
   @Accessors
-  private int currentTimeStep = 0;
+  private long currentTimeStep = 1;
   
   @Accessors
   private List<Node> chargeStationNodes;
+  
+  @Accessors
+  private AgentTask timeStepTask;
   
   private void $behaviorUnit$Initialize$0(final Initialize occurrence) {
     EnvironmentBehavior envBehav = new EnvironmentBehavior(this);
@@ -67,16 +73,19 @@ public class EnvironmentAgent extends Agent {
     Object _get = occurrence.parameters[0];
     this.timeStep = ((((Long) _get)) == null ? 0 : (((Long) _get)).longValue());
     Object _get_1 = occurrence.parameters[1];
-    JXMapViewerFrame _jXMapViewerFrame = new JXMapViewerFrame(((Node) _get_1));
+    Node map_center_node = ((Node) _get_1);
+    DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
+    AgentContext _defaultContext = _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.getDefaultContext();
+    UUID _iD = this.getID();
+    JXMapViewerFrame _jXMapViewerFrame = new JXMapViewerFrame(_defaultContext, _iD, map_center_node, this.timeStep);
     this.map = _jXMapViewerFrame;
     Schedules _$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER();
     final Procedure1<Agent> _function = (Agent it) -> {
-      DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
+      DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER_1 = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
       TimeStep _timeStep = new TimeStep(this.currentTimeStep);
-      _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_timeStep);
-      this.currentTimeStep++;
+      _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER_1.emit(_timeStep);
     };
-    _$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER.every(this.timeStep, _function);
+    this.timeStepTask = _$CAPACITY_USE$IO_SARL_CORE_SCHEDULES$CALLER.every(this.timeStep, _function);
   }
   
   private void $behaviorUnit$Destroy$1(final Destroy occurrence) {
@@ -409,7 +418,7 @@ public class EnvironmentAgent extends Agent {
     int result = super.hashCode();
     final int prime = 31;
     result = prime * result + Long.hashCode(this.timeStep);
-    result = prime * result + Integer.hashCode(this.currentTimeStep);
+    result = prime * result + Long.hashCode(this.currentTimeStep);
     return result;
   }
   
@@ -425,6 +434,15 @@ public class EnvironmentAgent extends Agent {
   }
   
   @Pure
+  protected long getTimeStep() {
+    return this.timeStep;
+  }
+  
+  protected void setTimeStep(final long timeStep) {
+    this.timeStep = timeStep;
+  }
+  
+  @Pure
   protected JXMapViewerFrame getMap() {
     return this.map;
   }
@@ -434,11 +452,11 @@ public class EnvironmentAgent extends Agent {
   }
   
   @Pure
-  protected int getCurrentTimeStep() {
+  protected long getCurrentTimeStep() {
     return this.currentTimeStep;
   }
   
-  protected void setCurrentTimeStep(final int currentTimeStep) {
+  protected void setCurrentTimeStep(final long currentTimeStep) {
     this.currentTimeStep = currentTimeStep;
   }
   
@@ -449,5 +467,14 @@ public class EnvironmentAgent extends Agent {
   
   protected void setChargeStationNodes(final List<Node> chargeStationNodes) {
     this.chargeStationNodes = chargeStationNodes;
+  }
+  
+  @Pure
+  protected AgentTask getTimeStepTask() {
+    return this.timeStepTask;
+  }
+  
+  protected void setTimeStepTask(final AgentTask timeStepTask) {
+    this.timeStepTask = timeStepTask;
   }
 }

@@ -2,7 +2,7 @@ package SARL.agents;
 
 import SARL.agents.FullPathUpdateEvent;
 import SARL.agents.TimeStep;
-import SARL.agents.VehiculeAgent;
+import SARL.agents.VehicleAgent;
 import SARL.agents.VehiculeStatus;
 import SARL.agents.capacities.ChargingCapacity;
 import SARL.agents.capacities.MovingCapacity;
@@ -28,8 +28,8 @@ import org.eclipse.xtext.xbase.lib.Pure;
 @SarlSpecification("0.12")
 @SarlElementType(21)
 @SuppressWarnings("all")
-public class VehiculeAgentBehavior extends Behavior {
-  private final VehiculeAgent owner;
+public class VehicleAgentBehavior extends Behavior {
+  private final VehicleAgent owner;
   
   private int currentNodeIndex = 0;
   
@@ -37,7 +37,7 @@ public class VehiculeAgentBehavior extends Behavior {
   
   private double distanceBetweenNodes;
   
-  public VehiculeAgentBehavior(final VehiculeAgent owner) {
+  public VehicleAgentBehavior(final VehicleAgent owner) {
     super(owner);
     this.owner = owner;
   }
@@ -205,7 +205,7 @@ public class VehiculeAgentBehavior extends Behavior {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    VehiculeAgentBehavior other = (VehiculeAgentBehavior) obj;
+    VehicleAgentBehavior other = (VehicleAgentBehavior) obj;
     if (other.currentNodeIndex != this.currentNodeIndex)
       return false;
     if (other.currentPathIndex != this.currentPathIndex)

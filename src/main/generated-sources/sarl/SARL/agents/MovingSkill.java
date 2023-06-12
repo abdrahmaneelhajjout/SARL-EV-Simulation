@@ -1,7 +1,7 @@
 package SARL.agents;
 
-import SARL.agents.AgentUpdateEvent;
-import SARL.agents.VehiculeAgent;
+import SARL.agents.VehicleAgent;
+import SARL.agents.VehicleAgentUpdateEvent;
 import SARL.agents.VehiculeStatus;
 import SARL.agents.capacities.MovingCapacity;
 import SARL.agents.geolocation.mapbox.Node;
@@ -22,7 +22,7 @@ import org.eclipse.xtext.xbase.lib.Pure;
 @SarlElementType(22)
 @SuppressWarnings("all")
 public class MovingSkill extends Skill implements MovingCapacity {
-  private VehiculeAgent owner;
+  private VehicleAgent owner;
   
   public void install() {
     class $AssertEvaluator$ {
@@ -34,7 +34,7 @@ public class MovingSkill extends Skill implements MovingCapacity {
     }
     assert new $AssertEvaluator$().$$result;
     Agent _owner = this.getOwner();
-    this.owner = ((VehiculeAgent) _owner);
+    this.owner = ((VehicleAgent) _owner);
   }
   
   @Override
@@ -45,8 +45,8 @@ public class MovingSkill extends Skill implements MovingCapacity {
       this.owner.setCurrentLocation(currentNode);
       DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
       String _agentName = this.owner.getAgentName();
-      AgentUpdateEvent _agentUpdateEvent = new AgentUpdateEvent(currentNode, _agentName);
-      _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_agentUpdateEvent);
+      VehicleAgentUpdateEvent _vehicleAgentUpdateEvent = new VehicleAgentUpdateEvent(currentNode, _agentName);
+      _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_vehicleAgentUpdateEvent);
     }
   }
   

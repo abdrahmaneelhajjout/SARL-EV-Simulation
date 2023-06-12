@@ -21,7 +21,7 @@ import io.sarl.core.SpaceDestroyed
  * @author ELHAJJOUT
  * 
  */
-agent MotorAgent extends VehiculeAgent{
+agent MotorAgent extends VehicleAgent {
 	uses Logging
 
 	on Initialize {

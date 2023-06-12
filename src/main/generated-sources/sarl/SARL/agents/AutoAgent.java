@@ -1,6 +1,6 @@
 package SARL.agents;
 
-import SARL.agents.VehiculeAgent;
+import SARL.agents.VehicleAgent;
 import io.sarl.core.AgentKilled;
 import io.sarl.core.AgentSpawned;
 import io.sarl.core.ContextJoined;
@@ -35,7 +35,7 @@ import org.eclipse.xtext.xbase.lib.Pure;
 @SarlSpecification("0.12")
 @SarlElementType(19)
 @SuppressWarnings("all")
-public class AutoAgent extends VehiculeAgent {
+public class AutoAgent extends VehicleAgent {
   private void $behaviorUnit$Initialize$0(final Initialize occurrence) {
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
     _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("The agent was started.");

@@ -12,12 +12,12 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 @SarlSpecification("0.12")
 @SarlElementType(15)
 @SuppressWarnings("all")
-public class AgentUpdateEvent extends Event {
+public class VehicleAgentUpdateEvent extends Event {
   public final Node current_location_node;
   
   public final String agentName;
   
-  public AgentUpdateEvent(final Node current_location_node, final String agentName) {
+  public VehicleAgentUpdateEvent(final Node current_location_node, final String agentName) {
     this.current_location_node = current_location_node;
     this.agentName = agentName;
   }
@@ -32,7 +32,7 @@ public class AgentUpdateEvent extends Event {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    AgentUpdateEvent other = (AgentUpdateEvent) obj;
+    VehicleAgentUpdateEvent other = (VehicleAgentUpdateEvent) obj;
     if (!Objects.equals(this.agentName, other.agentName))
       return false;
     return super.equals(obj);
@@ -49,7 +49,7 @@ public class AgentUpdateEvent extends Event {
   }
   
   /**
-   * Returns a String representation of the AgentUpdateEvent event's attributes only.
+   * Returns a String representation of the VehicleAgentUpdateEvent event's attributes only.
    */
   @SyntheticMember
   @Pure

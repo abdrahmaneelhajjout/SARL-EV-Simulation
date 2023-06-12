@@ -35,7 +35,7 @@ import io.sarl.core.DefaultContextInteractions
  * 
  */
 @SuppressWarnings("unused_private_member")
-agent VehiculeAgent extends Agent {
+agent VehicleAgent extends Agent {
 	uses Logging, Behaviors, GeoLocationCapacity, DefaultContextInteractions;
 
 	@Accessors var agentName : String;
@@ -52,12 +52,8 @@ agent VehiculeAgent extends Agent {
 	@Accessors var chargeStationNode : Node
 	var location_pair : Pair<Node, Node>; // the pair <startNode, destinationNode>
 
-	on Initialize {
-		
-		
-		info(occurrence.parameters.get(0))
+	on Initialize {		
 		this.agentName = occurrence.parameters.get(0) as String;
-		
 		this.location_pair = occurrence.parameters.get(1) as Pair<Node, Node>;
 		this.speedKmPerHour = occurrence.parameters.get(2) as Double;
 		this.startNode = location_pair.getKey();
@@ -65,7 +61,9 @@ agent VehiculeAgent extends Agent {
 		this.destinationNode = location_pair.getValue();
 		this.fullPath = getRouteToDestination(startNode, destinationNode);
 		this.subPath = getNodesBetween(fullPath.get(0), fullPath.get(1), 1000) // get the subpath for the first pair
-		var agentBehavior = new VehiculeAgentBehavior(this)
+		emit(new VehicleAgentInitEvent(currentLocation, agentName, fullPath));
+		var agentBehavior = new VehicleAgentBehavior(this)
+		
 		setLoggingName(agentName)
 		registerBehavior(agentBehavior)
 		info("----------------- " + this.agentName + " ----------------------")
@@ -73,7 +71,6 @@ agent VehiculeAgent extends Agent {
 		info("from " + startNode)
 		info("to " + destinationNode)
 		info("------------------------------------------------------------")
-		emit(new FullPathUpdateEvent(this.agentName, this.fullPath))
 	}
 
 	on Destroy {
