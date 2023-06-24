@@ -1,6 +1,6 @@
 package SARL.agents;
 
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
@@ -61,5 +61,5 @@ public class FullPathUpdateEvent extends Event {
   }
   
   @SyntheticMember
-  private static final long serialVersionUID = -338473887L;
+  private static final long serialVersionUID = -120522498L;
 }

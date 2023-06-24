@@ -3,10 +3,7 @@ package SARL.agents;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
-import io.sarl.lang.core.Address;
 import io.sarl.lang.core.Event;
-import java.util.Objects;
-import java.util.UUID;
 import org.eclipse.xtext.xbase.lib.Pure;
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
@@ -14,20 +11,16 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 @SarlElementType(15)
 @SuppressWarnings("all")
 public class ChargeRequestEvent extends Event {
-  public UUID vehicleId;
+  public final long currentBatteryLevel;
   
-  public int currentBatteryLevel;
+  public final long batteryCapacity;
   
-  public int ChargeBatteryCapacity;
+  public final long BatteryChargeCapacity;
   
-  @SyntheticMember
-  public ChargeRequestEvent() {
-    super();
-  }
-  
-  @SyntheticMember
-  public ChargeRequestEvent(final Address source) {
-    super(source);
+  public ChargeRequestEvent(final long currentBatteryLevel, final long batteryCapacity, final long ChargeBatteryCapacity) {
+    this.currentBatteryLevel = currentBatteryLevel;
+    this.batteryCapacity = batteryCapacity;
+    this.BatteryChargeCapacity = ChargeBatteryCapacity;
   }
   
   @Override
@@ -41,11 +34,11 @@ public class ChargeRequestEvent extends Event {
     if (getClass() != obj.getClass())
       return false;
     ChargeRequestEvent other = (ChargeRequestEvent) obj;
-    if (!Objects.equals(this.vehicleId, other.vehicleId))
-      return false;
     if (other.currentBatteryLevel != this.currentBatteryLevel)
       return false;
-    if (other.ChargeBatteryCapacity != this.ChargeBatteryCapacity)
+    if (other.batteryCapacity != this.batteryCapacity)
+      return false;
+    if (other.BatteryChargeCapacity != this.BatteryChargeCapacity)
       return false;
     return super.equals(obj);
   }
@@ -56,9 +49,9 @@ public class ChargeRequestEvent extends Event {
   public int hashCode() {
     int result = super.hashCode();
     final int prime = 31;
-    result = prime * result + Objects.hashCode(this.vehicleId);
-    result = prime * result + Integer.hashCode(this.currentBatteryLevel);
-    result = prime * result + Integer.hashCode(this.ChargeBatteryCapacity);
+    result = prime * result + Long.hashCode(this.currentBatteryLevel);
+    result = prime * result + Long.hashCode(this.batteryCapacity);
+    result = prime * result + Long.hashCode(this.BatteryChargeCapacity);
     return result;
   }
   
@@ -69,11 +62,11 @@ public class ChargeRequestEvent extends Event {
   @Pure
   protected void toString(final ToStringBuilder builder) {
     super.toString(builder);
-    builder.add("vehicleId", this.vehicleId);
     builder.add("currentBatteryLevel", this.currentBatteryLevel);
-    builder.add("ChargeBatteryCapacity", this.ChargeBatteryCapacity);
+    builder.add("batteryCapacity", this.batteryCapacity);
+    builder.add("BatteryChargeCapacity", this.BatteryChargeCapacity);
   }
   
   @SyntheticMember
-  private static final long serialVersionUID = -522360079L;
+  private static final long serialVersionUID = 572569775L;
 }

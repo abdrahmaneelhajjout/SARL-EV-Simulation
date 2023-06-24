@@ -1,0 +1,151 @@
+package SARL.agents
+
+import SARL.agents.utils.geolocation.mapbox.Node;
+import java.util.UUID
+import javafx.util.Pair;
+import java.util.List
+import SARL.agents.utils.TrafficLightStatus
+import io.sarl.lang.core.Address
+
+event TimeStep {
+	val step : long // in seconds
+
+	new (step : long = 1) {
+		this.step = step
+	}
+}
+
+event VehicleAgentInitEvent {
+	val initial_location_node : Node
+	val agentName : String;
+	val path : List<Node>;
+	new (initial_location_node : Node, agentName : String, path : List<Node>) {
+		this.initial_location_node = initial_location_node;
+		this.agentName = agentName;
+		this.path = path;
+
+	}
+}
+event VehicleAgentUpdateEvent {
+	val current_location_node : Node
+	val agentName : String;
+
+	new (current_location_node : Node, agentName : String) {
+		this.current_location_node = current_location_node;
+		this.agentName = agentName;
+
+	}
+}
+
+
+
+event TrafficSignaInitEvent {
+	val location : Node
+	val agentName : String;
+	val color : TrafficLightStatus
+
+	new (location : Node, agentName : String, color : TrafficLightStatus) {
+		this.location = location;
+		this.agentName = agentName;
+		this.color = color;
+
+	}
+}
+
+event TrafficColorChangedEvent {
+	val agentName : String;
+	val colorIcon : String
+
+	new (colorIcon : String, agentName : String) {
+		this.colorIcon = colorIcon;
+		this.agentName = agentName;
+
+	}
+}
+
+event ChargeRequestEvent {
+	val currentBatteryLevel : long
+	val batteryCapacity : long;
+	val BatteryChargeCapacity : long;
+	
+	new (currentBatteryLevel : long, batteryCapacity : long, ChargeBatteryCapacity : long) {
+		this.currentBatteryLevel = currentBatteryLevel
+		this.batteryCapacity = batteryCapacity
+		this.BatteryChargeCapacity = ChargeBatteryCapacity
+	}
+}
+
+event FindChargeStationEvent {
+	val currentBatteryLevel : long
+	val currentLocation : Node
+	val destination : Node
+
+	new (currentLocation : Node, destination : Node, currentBatteryLevel : long) {
+		this.currentLocation = currentLocation
+		this.destination = destination
+		this.currentBatteryLevel = currentBatteryLevel
+	}
+}
+
+event FullPathUpdateEvent {
+	val agentName : String
+	val newPath : List<Node>
+
+	new (agentName : String, newPath : List<Node>) {
+		this.agentName = agentName;
+		this.newPath = newPath
+	}
+}
+
+event VehicleAgentCreatedEvent {
+	val agentName : String
+
+	new (agentName : String) {
+		this.agentName = agentName;
+	}
+}
+
+event chargeStationFoundEvent {
+	val closestStation : Node;
+	val stationAdressAndNamePair : Pair<Address, String>;
+	new (closestStation : Node, stationAdressAndNamePair : Pair<Address, String>) {
+		this.closestStation = closestStation;
+		this.stationAdressAndNamePair = stationAdressAndNamePair;
+	}
+}
+
+event ChargeFinished {
+	var vehicleId : UUID
+}
+
+event ChargeStationInitEvent {
+	val agentName : String
+	val location : Node
+
+	new (location : Node, agentName : String) {
+		this.location = location;
+		this.agentName = agentName
+	}
+}
+
+event TimeStepChangedEvent {
+	val timeStep : Long
+
+	new(timeStep : Long) {
+		this.timeStep = timeStep
+	}
+}
+
+event ChargeApprovedEvent {
+	val totalPrice : double
+	val chargeNeeded : long
+
+	new(totalPrice : double, chargeNeeded : long) {
+		this.totalPrice = totalPrice
+		this.chargeNeeded = chargeNeeded
+	}
+}
+
+event ChargeCompletedEvent{
+	
+}

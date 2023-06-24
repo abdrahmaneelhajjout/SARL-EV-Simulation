@@ -1,10 +1,10 @@
 package SARL.agents;
 
-import SARL.agents.TrafficLight;
-import SARL.agents.TrafficLightStatus;
 import SARL.agents.TrafficSignaInitEvent;
 import SARL.agents.TrafficSignalBehavior;
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.TrafficLight;
+import SARL.agents.utils.TrafficLightStatus;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.core.AgentKilled;
 import io.sarl.core.AgentSpawned;
 import io.sarl.core.Behaviors;

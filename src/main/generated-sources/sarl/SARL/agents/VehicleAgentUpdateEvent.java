@@ -1,6 +1,6 @@
 package SARL.agents;
 
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
@@ -60,5 +60,5 @@ public class VehicleAgentUpdateEvent extends Event {
   }
   
   @SyntheticMember
-  private static final long serialVersionUID = 1933074071L;
+  private static final long serialVersionUID = -799263651L;
 }

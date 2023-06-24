@@ -4,7 +4,7 @@ import SARL.agents.FindChargeStationEvent;
 import SARL.agents.VehicleAgent;
 import SARL.agents.capacities.ChargingCapacity;
 import SARL.agents.capacities.GeoLocationCapacity;
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import com.google.common.base.Objects;
 import io.sarl.core.DefaultContextInteractions;
 import io.sarl.core.Logging;
@@ -38,8 +38,9 @@ public class ChargingCapacitySkill extends Skill implements ChargingCapacity {
     this.owner = ((VehicleAgent) _owner);
   }
   
-  public int getBatteryLevel() {
-    return ((this.owner.getBatteryLevel()) == null ? 0 : (this.owner.getBatteryLevel()).intValue());
+  @Pure
+  public long getBatteryLevel() {
+    return this.owner.getBatteryLevel();
   }
   
   public void goCharge() {
@@ -48,8 +49,8 @@ public class ChargingCapacitySkill extends Skill implements ChargingCapacity {
     Node _currentLocation = ((VehicleAgent) _owner).getCurrentLocation();
     Agent _owner_1 = this.getOwner();
     Node _destinationNode = ((VehicleAgent) _owner_1).getDestinationNode();
-    Integer _batteryLevel = this.owner.getBatteryLevel();
-    FindChargeStationEvent _findChargeStationEvent = new FindChargeStationEvent(_currentLocation, _destinationNode, ((_batteryLevel) == null ? 0 : (_batteryLevel).intValue()));
+    long _batteryLevel = this.owner.getBatteryLevel();
+    FindChargeStationEvent _findChargeStationEvent = new FindChargeStationEvent(_currentLocation, _destinationNode, _batteryLevel);
     _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER.emit(_findChargeStationEvent);
     Node closestChagreStationNode = null;
     while (Objects.equal((closestChagreStationNode = ((VehicleAgent) this.getOwner()).getChargeStationNode()), null)) {
@@ -59,41 +60,44 @@ public class ChargingCapacitySkill extends Skill implements ChargingCapacity {
     _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info(((_agentName + " - ") + closestChagreStationNode));
     GeoLocationCapacity _$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER = this.$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER();
     Agent _owner_2 = this.getOwner();
-    this.owner.setFullPath(_$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER.getRouteToDestination(((VehicleAgent) _owner_2).getCurrentLocation(), closestChagreStationNode, 
-      this.owner.getDestinationNode()));
+    this.owner.setFromSourceToDestinationViaStationPair(_$CAPACITY_USE$SARL_AGENTS_CAPACITIES_GEOLOCATIONCAPACITY$CALLER.getRouteToDestinationAsPair(
+      ((VehicleAgent) _owner_2).getCurrentLocation(), closestChagreStationNode, this.owner.getDestinationNode()));
+    this.owner.setFullPath(this.owner.getFromSourceToDestinationViaStationPair().getKey());
   }
   
-  public int getBatteryCapacity() {
+  @Pure
+  public long getBatteryCapacity() {
     Agent _owner = this.getOwner();
-    return ((((VehicleAgent) _owner).getBatteryCapacity()) == null ? 0 : (((VehicleAgent) _owner).getBatteryCapacity()).intValue());
+    return ((VehicleAgent) _owner).getBatteryCapacity();
   }
   
-  public int getBatteryChargeCapacity() {
+  @Pure
+  public long getBatteryChargeCapacity() {
     Agent _owner = this.getOwner();
-    return ((((VehicleAgent) _owner).getBatteryChargeCapacity()) == null ? 0 : (((VehicleAgent) _owner).getBatteryChargeCapacity()).intValue());
+    return ((VehicleAgent) _owner).getBatteryChargeCapacity();
   }
   
-  public void updateBatteryLevel(final int amount) {
+  public void updateBatteryLevel(final long amount) {
     Agent _owner = this.getOwner();
-    Integer _batteryLevel = ((VehicleAgent) _owner).getBatteryLevel();
-    int newLevel = (((_batteryLevel) == null ? 0 : (_batteryLevel).intValue()) + amount);
+    long _batteryLevel = ((VehicleAgent) _owner).getBatteryLevel();
+    long newLevel = (_batteryLevel + amount);
     Agent _owner_1 = this.getOwner();
-    Integer _batteryCapacity = ((VehicleAgent) _owner_1).getBatteryCapacity();
-    if ((newLevel > _batteryCapacity.doubleValue())) {
+    long _batteryCapacity = ((VehicleAgent) _owner_1).getBatteryCapacity();
+    if ((newLevel > _batteryCapacity)) {
       Agent _owner_2 = this.getOwner();
       Agent _owner_3 = this.getOwner();
       ((VehicleAgent) _owner_2).setBatteryLevel(((VehicleAgent) _owner_3).getBatteryCapacity());
     } else {
       Agent _owner_4 = this.getOwner();
-      ((VehicleAgent) _owner_4).setBatteryLevel(Integer.valueOf(newLevel));
+      ((VehicleAgent) _owner_4).setBatteryLevel(newLevel);
     }
   }
   
-  public void setBatteryLevel(final int amount) {
+  public void setBatteryLevel(final long amount) {
     try {
-      if (((amount >= 0) && (amount <= ((VehicleAgent) this.getOwner()).getBatteryCapacity().doubleValue()))) {
+      if (((amount >= 0) && (amount <= ((VehicleAgent) this.getOwner()).getBatteryCapacity()))) {
         Agent _owner = this.getOwner();
-        ((VehicleAgent) _owner).setBatteryLevel(Integer.valueOf(amount));
+        ((VehicleAgent) _owner).setBatteryLevel(amount);
       } else {
         throw new Exception("Invalid battery level. Battery level should be between 0 and battery capacity.");
       }

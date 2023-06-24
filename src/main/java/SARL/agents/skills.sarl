@@ -7,15 +7,16 @@ import SARL.agents.capacities.MovingCapacity;
 import SARL.agents.capacities.TrafficSignalManagementCapacity;
 import SARL.agents.capacities.BatteryCapacity;
 import SARL.agents.capacities.GeoLocationCapacity;
-import SARL.agents.geolocation.mapbox.Node;
-import SARL.agents.geolocation.GeoLocationService;
+import SARL.agents.utils.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.GeoLocationService;
 import java.util.Optional;
 import javafx.util.Pair;
 import java.util.List;
-import SARL.agents.geolocation.mapbox.RoutingService;
+import SARL.agents.utils.geolocation.mapbox.RoutingService;
 import io.sarl.core.Logging;
 import io.sarl.core.DefaultContextInteractions
 import SARL.agents.capacities.ChargingCapacity
+import SARL.agents.utils.TrafficLight
 
 skill MovingSkill implements MovingCapacity {
 	uses Logging, DefaultContextInteractions;
@@ -30,21 +31,27 @@ skill MovingSkill implements MovingCapacity {
 	}
 
 	override move(currentNode : Node) {
-		if (owner.status == VehiculeStatus.moving) {
+		if (owner.status == VehicleStatus.moving) {
 			owner.currentLocation = currentNode
 			emit(new VehicleAgentUpdateEvent(currentNode, owner.agentName))
 		}
 	}
 
 	override stop() {
-		owner.status = VehiculeStatus.stopped;
+		owner.status = VehicleStatus.stopped;
 		info("stopped");
 	}
 
-	override wating() {
-		owner.status = VehiculeStatus.waiting;
-		info("waiting");
+	override waiting(reason : String) {
+		owner.status = VehicleStatus.waiting;
+		info("waiting for " + reason + " reason");
 	}
+
+	override charging {
+		owner.status = VehicleStatus.charging;
+
+	}
+
 }
 
 skill GetLocationSkill implements GeoLocationCapacity {
@@ -54,7 +61,7 @@ skill GetLocationSkill implements GeoLocationCapacity {
 		var locationPair : Pair<Double, Double> = optionalLocation.orElseThrow([
 			new RuntimeException("Can't get the IP Address, check your connection")
 		]);
-		var current_location_node = new SARL.agents.geolocation.mapbox.Node(locationPair.getKey(),
+		var current_location_node = new SARL.agents.utils.geolocation.mapbox.Node(locationPair.getKey(),
 			locationPair.getValue());
 		return current_location_node;
 	}
@@ -68,6 +75,13 @@ skill GetLocationSkill implements GeoLocationCapacity {
 		var path : List<Node> = RoutingService.getRoute(source, viaNode, destination);
 		return path;
 	}
+
+	override getRouteToDestinationAsPair(source : Node, viaNode : Node,
+		destination : Node) : Pair<List<Node>, List<Node>> {
+		var path : Pair<List<Node>, List<Node>> = RoutingService.getRouteAsPair(source, viaNode, destination);
+		return path;
+	}
+
 }
 
 skill TrafficSignalSkill implements TrafficSignalManagementCapacity {
@@ -83,7 +97,6 @@ skill TrafficSignalSkill implements TrafficSignalManagementCapacity {
 	override changeColor(newColor : TrafficLight) {
 		assert owner !== null
 		owner.trafficLightStatus = newColor
-
 	}
 }
 
@@ -95,17 +108,17 @@ skill BatterySkill implements BatteryCapacity {
 		this.owner = getOwner as VehicleAgent
 	}
 
-	def getBatteryLevel : int {
+	def getBatteryLevel : long {
 		return owner.batteryLevel
 	}
 
-	def setBatteryLevel(level : int) : void {
+	def setBatteryLevel(level : long) : void {
 		if (level <= owner.batteryLevel) {
 			owner.batteryLevel = level
 		}
 	}
 
-	def getBatteryCapacity : int {
+	def getBatteryCapacity : long {
 		return owner.batteryCapacity
 	}
 }
@@ -120,7 +133,7 @@ skill ChargingCapacitySkill implements ChargingCapacity {
 		this.owner = getOwner as VehicleAgent
 	}
 
-	def getBatteryLevel() : int {
+	def getBatteryLevel() : long {
 		return this.owner.batteryLevel
 	}
 
@@ -133,19 +146,20 @@ skill ChargingCapacitySkill implements ChargingCapacity {
 		while ((closestChagreStationNode = (getOwner as VehicleAgent).chargeStationNode) == null) {
 		};
 		info(owner.agentName + " - " + closestChagreStationNode)
-		owner.fullPath = getRouteToDestination((getOwner as VehicleAgent).currentLocation, closestChagreStationNode,
-			owner.destinationNode)
+		owner.fromSourceToDestinationViaStationPair = getRouteToDestinationAsPair(
+			(getOwner as VehicleAgent).currentLocation, closestChagreStationNode, owner.destinationNode);
+		owner.fullPath = owner.fromSourceToDestinationViaStationPair.getKey()
 	}
 
-	def getBatteryCapacity() : int {
+	def getBatteryCapacity() : long {
 		return (getOwner as VehicleAgent).batteryCapacity
 	}
 
-	def getBatteryChargeCapacity() : int {
+	def getBatteryChargeCapacity() : long {
 		return (getOwner as VehicleAgent).batteryChargeCapacity
 	}
 
-	def updateBatteryLevel(amount : int) {
+	def updateBatteryLevel(amount : long) {
 		var newLevel = (getOwner as VehicleAgent).batteryLevel + amount
 		if (newLevel > (getOwner as VehicleAgent).batteryCapacity) {
 			(getOwner as VehicleAgent).batteryLevel = (getOwner as VehicleAgent).batteryCapacity
@@ -154,7 +168,7 @@ skill ChargingCapacitySkill implements ChargingCapacity {
 		}
 	}
 
-	def setBatteryLevel(amount : int) {
+	def setBatteryLevel(amount : long) {
 		if (amount >= 0 && amount <= (getOwner as VehicleAgent).batteryCapacity) {
 			(getOwner as VehicleAgent).batteryLevel = amount
 		} else {

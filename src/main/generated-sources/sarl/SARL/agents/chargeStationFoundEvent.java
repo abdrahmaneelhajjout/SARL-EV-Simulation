@@ -1,11 +1,12 @@
 package SARL.agents;
 
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
+import io.sarl.lang.core.Address;
 import io.sarl.lang.core.Event;
-import java.util.Objects;
+import javafx.util.Pair;
 import org.eclipse.xtext.xbase.lib.Pure;
 import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 
@@ -15,26 +16,17 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 public class chargeStationFoundEvent extends Event {
   public final Node closestStation;
   
-  public final String stationAgentName;
+  public final Pair<Address, String> stationAdressAndNamePair;
   
-  public chargeStationFoundEvent(final Node closestStation, final String stationAgentName) {
+  public chargeStationFoundEvent(final Node closestStation, final Pair<Address, String> stationAdressAndNamePair) {
     this.closestStation = closestStation;
-    this.stationAgentName = stationAgentName;
+    this.stationAdressAndNamePair = stationAdressAndNamePair;
   }
   
   @Override
   @Pure
   @SyntheticMember
   public boolean equals(final Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    chargeStationFoundEvent other = (chargeStationFoundEvent) obj;
-    if (!Objects.equals(this.stationAgentName, other.stationAgentName))
-      return false;
     return super.equals(obj);
   }
   
@@ -43,8 +35,6 @@ public class chargeStationFoundEvent extends Event {
   @SyntheticMember
   public int hashCode() {
     int result = super.hashCode();
-    final int prime = 31;
-    result = prime * result + Objects.hashCode(this.stationAgentName);
     return result;
   }
   
@@ -56,9 +46,9 @@ public class chargeStationFoundEvent extends Event {
   protected void toString(final ToStringBuilder builder) {
     super.toString(builder);
     builder.add("closestStation", this.closestStation);
-    builder.add("stationAgentName", this.stationAgentName);
+    builder.add("stationAdressAndNamePair", this.stationAdressAndNamePair);
   }
   
   @SyntheticMember
-  private static final long serialVersionUID = 7617274968L;
+  private static final long serialVersionUID = 4427037846L;
 }

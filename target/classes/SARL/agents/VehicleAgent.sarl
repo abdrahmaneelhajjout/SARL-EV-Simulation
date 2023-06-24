@@ -3,7 +3,7 @@
  */
 package SARL.agents
 
-import static SARL.agents.geolocation.mapbox.NodeUtils.getNodesBetween;
+import static SARL.agents.utils.geolocation.mapbox.NodeUtils.getNodesBetween;
 import io.sarl.core.AgentKilled
 import io.sarl.core.AgentSpawned
 import io.sarl.core.ContextJoined
@@ -18,12 +18,12 @@ import io.sarl.core.ParticipantLeft
 import io.sarl.core.SpaceCreated
 import io.sarl.core.SpaceDestroyed
 import io.sarl.core.Behaviors
-import SARL.agents.geolocation.mapbox.Node
+import SARL.agents.utils.geolocation.mapbox.Node
 import java.util.List
 import javafx.util.Pair;
 
 import java.util.Collections
-import SARL.agents.geolocation.mapbox.RoutingService
+import SARL.agents.utils.geolocation.mapbox.RoutingService
 import SARL.map.JXMapViewerFrame
 import org.eclipse.xtend.lib.annotations.Accessors
 import io.sarl.lang.core.Agent
@@ -42,28 +42,32 @@ agent VehicleAgent extends Agent {
 	@Accessors var startNode : Node;
 	@Accessors var fullPath : List<Node>;
 	@Accessors var subPath : List<Node>;
+	@Accessors var fromSourceToDestinationViaStationPair : Pair<List<Node>, List<Node>>;
 	@Accessors var currentLocation : Node;
 	@Accessors var destinationNode : Node
 	@Accessors var speedKmPerHour : double;
-	@Accessors var status : VehiculeStatus;
-	@Accessors var batteryLevel : Integer
-	@Accessors var batteryCapacity : Integer = 2000
-	@Accessors var batteryChargeCapacity : Integer  = 20// how much energy can be received in a unit of time
+	@Accessors var status : VehicleStatus;
+	@Accessors var batteryLevel : long = 15
+	@Accessors var batteryCapacity : long = 2000
+	@Accessors var batteryChargeCapacity : long = 20 // how much energy can be received in a unit of time
 	@Accessors var chargeStationNode : Node
 	var location_pair : Pair<Node, Node>; // the pair <startNode, destinationNode>
 
-	on Initialize {		
+	on Initialize {
 		this.agentName = occurrence.parameters.get(0) as String;
 		this.location_pair = occurrence.parameters.get(1) as Pair<Node, Node>;
 		this.speedKmPerHour = occurrence.parameters.get(2) as Double;
 		this.startNode = location_pair.getKey();
 		this.currentLocation = location_pair.getKey();
 		this.destinationNode = location_pair.getValue();
+		info(startNode)
+		info(destinationNode)
+		
 		this.fullPath = getRouteToDestination(startNode, destinationNode);
 		this.subPath = getNodesBetween(fullPath.get(0), fullPath.get(1), 1000) // get the subpath for the first pair
 		emit(new VehicleAgentInitEvent(currentLocation, agentName, fullPath));
 		var agentBehavior = new VehicleAgentBehavior(this)
-		
+
 		setLoggingName(agentName)
 		registerBehavior(agentBehavior)
 		info("----------------- " + this.agentName + " ----------------------")
@@ -76,26 +80,37 @@ agent VehicleAgent extends Agent {
 	on Destroy {
 		info("The agent was stopped.")
 	}
+
 	on AgentSpawned {
 	}
+
 	on AgentKilled {
 	}
+
 	on ContextJoined {
 	}
+
 	on ContextLeft {
 	}
+
 	on MemberJoined {
 	}
+
 	on MemberLeft {
 	}
+
 	on MemberLeft {
 	}
+
 	on SpaceCreated {
 	}
+
 	on SpaceDestroyed {
 	}
+
 	on ParticipantJoined {
 	}
+
 	on ParticipantLeft {
 	}
 }

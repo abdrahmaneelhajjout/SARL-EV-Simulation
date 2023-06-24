@@ -1,7 +1,7 @@
 package SARL.agents;
 
-import SARL.agents.TrafficLightStatus;
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.TrafficLightStatus;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
@@ -65,5 +65,5 @@ public class TrafficSignaInitEvent extends Event {
   }
   
   @SyntheticMember
-  private static final long serialVersionUID = 1022185591L;
+  private static final long serialVersionUID = 6411206967L;
 }

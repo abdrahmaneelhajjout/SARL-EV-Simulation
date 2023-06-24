@@ -14,19 +14,19 @@ import org.eclipse.xtext.xbase.lib.Pure;
 @SuppressWarnings("all")
 public interface ChargingCapacity extends Capacity {
   @Pure
-  int getBatteryLevel();
+  long getBatteryLevel();
   
   void goCharge();
   
   @Pure
-  int getBatteryCapacity();
+  long getBatteryCapacity();
   
   @Pure
-  int getBatteryChargeCapacity();
+  long getBatteryChargeCapacity();
   
-  void updateBatteryLevel(final int amount);
+  void updateBatteryLevel(final long amount);
   
-  void setBatteryLevel(final int amount);
+  void setBatteryLevel(final long amount);
   
   /**
    * @ExcludeFromApidoc
@@ -36,7 +36,7 @@ public interface ChargingCapacity extends Capacity {
       super(capacity, caller);
     }
     
-    public int getBatteryLevel() {
+    public long getBatteryLevel() {
       try {
         ensureCallerInLocalThread();
         return this.capacity.getBatteryLevel();
@@ -54,7 +54,7 @@ public interface ChargingCapacity extends Capacity {
       }
     }
     
-    public int getBatteryCapacity() {
+    public long getBatteryCapacity() {
       try {
         ensureCallerInLocalThread();
         return this.capacity.getBatteryCapacity();
@@ -63,7 +63,7 @@ public interface ChargingCapacity extends Capacity {
       }
     }
     
-    public int getBatteryChargeCapacity() {
+    public long getBatteryChargeCapacity() {
       try {
         ensureCallerInLocalThread();
         return this.capacity.getBatteryChargeCapacity();
@@ -72,7 +72,7 @@ public interface ChargingCapacity extends Capacity {
       }
     }
     
-    public void updateBatteryLevel(final int amount) {
+    public void updateBatteryLevel(final long amount) {
       try {
         ensureCallerInLocalThread();
         this.capacity.updateBatteryLevel(amount);
@@ -81,7 +81,7 @@ public interface ChargingCapacity extends Capacity {
       }
     }
     
-    public void setBatteryLevel(final int amount) {
+    public void setBatteryLevel(final long amount) {
       try {
         ensureCallerInLocalThread();
         this.capacity.setBatteryLevel(amount);

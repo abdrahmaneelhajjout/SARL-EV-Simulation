@@ -11,8 +11,8 @@ import SARL.agents.TrafficSignaInitEvent;
 import SARL.agents.VehicleAgentInitEvent;
 import SARL.agents.VehicleAgentUpdateEvent;
 import SARL.agents.chargeStationFoundEvent;
-import SARL.agents.geolocation.mapbox.Node;
-import SARL.agents.geolocation.mapbox.NodeUtils;
+import SARL.agents.utils.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.NodeUtils;
 import com.google.common.base.Objects;
 import io.sarl.core.DefaultContextInteractions;
 import io.sarl.core.Logging;
@@ -32,6 +32,7 @@ import io.sarl.lang.util.SerializableProxy;
 import java.io.ObjectStreamException;
 import java.util.Collection;
 import java.util.Set;
+import javafx.util.Pair;
 import org.eclipse.xtext.xbase.lib.Extension;
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure1;
 import org.eclipse.xtext.xbase.lib.Pure;
@@ -84,7 +85,7 @@ public class EnvironmentBehavior extends Behavior {
   
   private void $behaviorUnit$ChargeStationInitEvent$5(final ChargeStationInitEvent occurrence) {
     this.owner.getChargeStationNodes().add(occurrence.location);
-    this.owner.getMap().onChargeStationIniti(occurrence.location, occurrence.agentName);
+    this.owner.getMap().onChargeStationIniti(occurrence.location, occurrence.agentName, occurrence.getSource());
   }
   
   private void $behaviorUnit$FullPathUpdateEvent$6(final FullPathUpdateEvent occurrence) {
@@ -99,7 +100,7 @@ public class EnvironmentBehavior extends Behavior {
     Node location = occurrence.currentLocation;
     Node closestNode = NodeUtils.findClosestNode(this.owner.getChargeStationNodes(), location);
     DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
-    String _get = this.owner.getMap().chargeStationNodes.get(closestNode);
+    Pair<Address, String> _get = this.owner.getMap().chargeStationNodes.get(closestNode);
     chargeStationFoundEvent _chargeStationFoundEvent = new chargeStationFoundEvent(closestNode, _get);
     class $SerializableClosureProxy implements Scope<Address> {
       

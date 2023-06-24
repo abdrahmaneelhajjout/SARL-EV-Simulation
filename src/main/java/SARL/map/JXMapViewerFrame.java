@@ -16,9 +16,9 @@ import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.WaypointPainter;
 
 import SARL.agents.TimeStepChangedEvent;
-import SARL.agents.TrafficLightStatus;
-import SARL.agents.geolocation.GeoLocationService;
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.GeoLocationService;
+import SARL.agents.utils.geolocation.mapbox.Node;
+import SARL.agents.utils.TrafficLightStatus;
 import SARL.map.waypoints.AgentPathPainter;
 import SARL.map.waypoints.CarWaypoint;
 import SARL.map.waypoints.CarWaypointRenderer;
@@ -76,7 +76,7 @@ public class JXMapViewerFrame extends JFrame {
 	private Set<ChargeStationWaypoint> chargeStationWaypoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
 	private WaypointPainter<ChargeStationWaypoint> chargeStationWaypointPainter = new WaypointPainter<>();
 
-	public Map<Node, String> chargeStationNodes = new HashMap<>();
+	public Map<Node, Pair<Address, String>> chargeStationNodes = new HashMap<>();
 
 	// maping each car waypoint to the name of the agent it belongs
 	private Map<String, CarWaypoint> CarAgentWaypoints = new ConcurrentHashMap<>();
@@ -259,12 +259,12 @@ public class JXMapViewerFrame extends JFrame {
 		}
 	}
 
-	public void onChargeStationIniti(Node location, String agentName) {
+	public void onChargeStationIniti(Node location, String agentName, Address agentID) {
 
 		GeoPosition newPosition = new GeoPosition(location.getLatitude(), location.getLongitude());
 		// Create a new waypoint and add it to the set
 		ChargeStationWaypoint newWaypoint = new ChargeStationWaypoint(newPosition, agentName);
-		chargeStationNodes.put(location, agentName);
+		chargeStationNodes.put(location, new Pair(agentID, agentName));
 		chargeStationWaypoints.add(newWaypoint);
 		// Create a copy of the trafficSignalWaypoints set
 		Set<ChargeStationWaypoint> copy = new HashSet<>(chargeStationWaypoints);

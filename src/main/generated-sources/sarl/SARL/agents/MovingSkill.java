@@ -2,9 +2,9 @@ package SARL.agents;
 
 import SARL.agents.VehicleAgent;
 import SARL.agents.VehicleAgentUpdateEvent;
-import SARL.agents.VehiculeStatus;
+import SARL.agents.VehicleStatus;
 import SARL.agents.capacities.MovingCapacity;
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import com.google.common.base.Objects;
 import io.sarl.core.DefaultContextInteractions;
 import io.sarl.core.Logging;
@@ -39,8 +39,8 @@ public class MovingSkill extends Skill implements MovingCapacity {
   
   @Override
   public void move(final Node currentNode) {
-    VehiculeStatus _status = this.owner.getStatus();
-    boolean _equals = Objects.equal(_status, VehiculeStatus.moving);
+    VehicleStatus _status = this.owner.getStatus();
+    boolean _equals = Objects.equal(_status, VehicleStatus.moving);
     if (_equals) {
       this.owner.setCurrentLocation(currentNode);
       DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
@@ -52,16 +52,21 @@ public class MovingSkill extends Skill implements MovingCapacity {
   
   @Override
   public void stop() {
-    this.owner.setStatus(VehiculeStatus.stopped);
+    this.owner.setStatus(VehicleStatus.stopped);
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
     _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("stopped");
   }
   
   @Override
-  public void wating() {
-    this.owner.setStatus(VehiculeStatus.waiting);
+  public void waiting(final String reason) {
+    this.owner.setStatus(VehicleStatus.waiting);
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
-    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info("waiting");
+    _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.info((("waiting for " + reason) + " reason"));
+  }
+  
+  @Override
+  public void charging() {
+    this.owner.setStatus(VehicleStatus.charging);
   }
   
   @Extension

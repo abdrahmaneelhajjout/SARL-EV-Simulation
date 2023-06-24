@@ -1,8 +1,8 @@
 package SARL.agents;
 
-import SARL.agents.TrafficLight;
 import SARL.agents.TrafficSignalAgent;
 import SARL.agents.capacities.TrafficSignalManagementCapacity;
+import SARL.agents.utils.TrafficLight;
 import io.sarl.core.Logging;
 import io.sarl.lang.annotation.ImportedCapacityFeature;
 import io.sarl.lang.annotation.SarlElementType;

@@ -1,6 +1,6 @@
 package SARL.agents;
 
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
@@ -60,5 +60,5 @@ public class ChargeStationInitEvent extends Event {
   }
   
   @SyntheticMember
-  private static final long serialVersionUID = 5037401670L;
+  private static final long serialVersionUID = 2305063948L;
 }

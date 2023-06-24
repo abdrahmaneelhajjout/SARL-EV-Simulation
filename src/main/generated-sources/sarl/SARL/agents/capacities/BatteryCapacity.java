@@ -14,12 +14,12 @@ import org.eclipse.xtext.xbase.lib.Pure;
 @SuppressWarnings("all")
 public interface BatteryCapacity extends Capacity {
   @Pure
-  int getBatteryLevel();
+  long getBatteryLevel();
   
-  void setBatteryLevel(final int level);
+  void setBatteryLevel(final long level);
   
   @Pure
-  int getBatteryCapacity();
+  long getBatteryCapacity();
   
   /**
    * @ExcludeFromApidoc
@@ -29,7 +29,7 @@ public interface BatteryCapacity extends Capacity {
       super(capacity, caller);
     }
     
-    public int getBatteryLevel() {
+    public long getBatteryLevel() {
       try {
         ensureCallerInLocalThread();
         return this.capacity.getBatteryLevel();
@@ -38,7 +38,7 @@ public interface BatteryCapacity extends Capacity {
       }
     }
     
-    public void setBatteryLevel(final int level) {
+    public void setBatteryLevel(final long level) {
       try {
         ensureCallerInLocalThread();
         this.capacity.setBatteryLevel(level);
@@ -47,7 +47,7 @@ public interface BatteryCapacity extends Capacity {
       }
     }
     
-    public int getBatteryCapacity() {
+    public long getBatteryCapacity() {
       try {
         ensureCallerInLocalThread();
         return this.capacity.getBatteryCapacity();

@@ -1,9 +1,11 @@
 package SARL.agents;
 
+import SARL.agents.ChargeStationBehvior;
 import SARL.agents.ChargeStationInitEvent;
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.core.AgentKilled;
 import io.sarl.core.AgentSpawned;
+import io.sarl.core.Behaviors;
 import io.sarl.core.ContextJoined;
 import io.sarl.core.ContextLeft;
 import io.sarl.core.DefaultContextInteractions;
@@ -30,6 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
+import org.eclipse.xtend.lib.annotations.Accessors;
 import org.eclipse.xtext.xbase.lib.Extension;
 import org.eclipse.xtext.xbase.lib.Pure;
 
@@ -44,13 +47,21 @@ public class ChargeStationAgent extends Agent {
   
   private Node location;
   
+  @Accessors
+  private double priceInDhPerKwh;
+  
   private void $behaviorUnit$Initialize$0(final Initialize occurrence) {
     Object _get = occurrence.parameters[0];
     this.agentName = (_get == null ? null : _get.toString());
     Object _get_1 = occurrence.parameters[1];
     this.location = ((Node) _get_1);
+    Object _get_2 = occurrence.parameters[2];
+    this.priceInDhPerKwh = ((((Double) _get_2)) == null ? 0 : (((Double) _get_2)).doubleValue());
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
     _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER.setLoggingName(this.agentName);
+    ChargeStationBehvior stationBehvior = new ChargeStationBehvior(this);
+    Behaviors _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER();
+    _$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER.registerBehavior(stationBehvior);
     Logging _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1 = this.$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER();
     _$CAPACITY_USE$IO_SARL_CORE_LOGGING$CALLER_1.info(("The agent was started at  " + this.location));
     DefaultContextInteractions _$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER = this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS$CALLER();
@@ -122,6 +133,20 @@ public class ChargeStationAgent extends Agent {
       this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS = $getSkill(DefaultContextInteractions.class);
     }
     return $castSkill(DefaultContextInteractions.class, this.$CAPACITY_USE$IO_SARL_CORE_DEFAULTCONTEXTINTERACTIONS);
+  }
+  
+  @Extension
+  @ImportedCapacityFeature(Behaviors.class)
+  @SyntheticMember
+  private transient AtomicSkillReference $CAPACITY_USE$IO_SARL_CORE_BEHAVIORS;
+  
+  @SyntheticMember
+  @Pure
+  private Behaviors $CAPACITY_USE$IO_SARL_CORE_BEHAVIORS$CALLER() {
+    if (this.$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS == null || this.$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS.get() == null) {
+      this.$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS = $getSkill(Behaviors.class);
+    }
+    return $castSkill(Behaviors.class, this.$CAPACITY_USE$IO_SARL_CORE_BEHAVIORS);
   }
   
   @SyntheticMember
@@ -348,6 +373,8 @@ public class ChargeStationAgent extends Agent {
     ChargeStationAgent other = (ChargeStationAgent) obj;
     if (!Objects.equals(this.agentName, other.agentName))
       return false;
+    if (Double.doubleToLongBits(other.priceInDhPerKwh) != Double.doubleToLongBits(this.priceInDhPerKwh))
+      return false;
     return super.equals(obj);
   }
   
@@ -358,6 +385,7 @@ public class ChargeStationAgent extends Agent {
     int result = super.hashCode();
     final int prime = 31;
     result = prime * result + Objects.hashCode(this.agentName);
+    result = prime * result + Double.hashCode(this.priceInDhPerKwh);
     return result;
   }
   
@@ -370,5 +398,14 @@ public class ChargeStationAgent extends Agent {
   @Inject
   public ChargeStationAgent(final UUID parentID, final UUID agentID, final DynamicSkillProvider skillProvider) {
     super(parentID, agentID, skillProvider);
+  }
+  
+  @Pure
+  protected double getPriceInDhPerKwh() {
+    return this.priceInDhPerKwh;
+  }
+  
+  protected void setPriceInDhPerKwh(final double priceInDhPerKwh) {
+    this.priceInDhPerKwh = priceInDhPerKwh;
   }
 }

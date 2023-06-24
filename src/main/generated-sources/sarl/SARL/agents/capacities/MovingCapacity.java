@@ -1,7 +1,7 @@
 package SARL.agents.capacities;
 
 import SARL.agents.MovingSkill;
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.core.AgentTrait;
@@ -20,7 +20,9 @@ public interface MovingCapacity extends Capacity {
   
   void stop();
   
-  void wating();
+  void waiting(final String reason);
+  
+  void charging();
   
   /**
    * @ExcludeFromApidoc
@@ -48,10 +50,19 @@ public interface MovingCapacity extends Capacity {
       }
     }
     
-    public void wating() {
+    public void waiting(final String reason) {
       try {
         ensureCallerInLocalThread();
-        this.capacity.wating();
+        this.capacity.waiting(reason);
+      } finally {
+        resetCallerInLocalThread();
+      }
+    }
+    
+    public void charging() {
+      try {
+        ensureCallerInLocalThread();
+        this.capacity.charging();
       } finally {
         resetCallerInLocalThread();
       }

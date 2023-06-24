@@ -16,22 +16,27 @@ import io.sarl.core.ParticipantJoined
 import io.sarl.core.ParticipantLeft
 import io.sarl.core.SpaceCreated
 import io.sarl.core.SpaceDestroyed
-import SARL.agents.geolocation.mapbox.Node
+import SARL.agents.utils.geolocation.mapbox.Node
 import io.sarl.core.DefaultContextInteractions
+import io.sarl.core.Behaviors
+import org.eclipse.xtend.lib.annotations.Accessors
 
 /** 
  * @author ELHAJJOUT
  * 
  */
 agent ChargeStationAgent {
-	uses Logging, DefaultContextInteractions
+	uses Logging, DefaultContextInteractions, Behaviors
 	var agentName: String
 	var location : Node;
+	@Accessors var priceInDhPerKwh : double
 	on Initialize {
-		
 		this.agentName = occurrence.parameters.get(0) as String;
 		this.location = occurrence.parameters.get(1) as Node;
+		this.priceInDhPerKwh = occurrence.parameters.get(2) as Double;
 		setLoggingName(agentName)
+		var stationBehvior : ChargeStationBehvior = new ChargeStationBehvior(this);
+		registerBehavior(stationBehvior)
 		info("The agent was started at  " + location )
 		emit(new ChargeStationInitEvent(location, agentName))
 	}

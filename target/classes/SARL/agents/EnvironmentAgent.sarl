@@ -21,8 +21,8 @@ import io.sarl.core.DefaultContextInteractions
 import SARL.map.JXMapViewerFrame
 import java.util.UUID
 import java.util.List
-import SARL.agents.geolocation.mapbox.Node
-import SARL.agents.geolocation.mapbox.NodeUtils
+import SARL.agents.utils.geolocation.mapbox.Node
+import SARL.agents.utils.geolocation.mapbox.NodeUtils
 import java.util.ArrayList
 import javax.accessibility.Accessible
 import org.eclipse.xtend.lib.annotations.Accessors
@@ -44,8 +44,9 @@ agent EnvironmentAgent extends Agent {
 	@Accessors var currentTimeStep : long = 1
 
 	@Accessors var chargeStationNodes : List<Node>
-				
+
 	@Accessors var timeStepTask : AgentTask
+
 	// var roadNetwork: Graph
 	on Initialize {
 

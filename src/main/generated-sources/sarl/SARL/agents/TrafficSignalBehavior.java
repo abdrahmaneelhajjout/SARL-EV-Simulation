@@ -1,9 +1,9 @@
 package SARL.agents;
 
 import SARL.agents.TrafficColorChangedEvent;
-import SARL.agents.TrafficLight;
 import SARL.agents.TrafficSignalAgent;
 import SARL.agents.capacities.TrafficSignalManagementCapacity;
+import SARL.agents.utils.TrafficLight;
 import io.sarl.core.DefaultContextInteractions;
 import io.sarl.core.Initialize;
 import io.sarl.core.Schedules;

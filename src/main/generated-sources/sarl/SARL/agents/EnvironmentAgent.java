@@ -2,7 +2,7 @@ package SARL.agents;
 
 import SARL.agents.EnvironmentBehavior;
 import SARL.agents.TimeStep;
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import SARL.map.JXMapViewerFrame;
 import io.sarl.core.AgentKilled;
 import io.sarl.core.AgentSpawned;

@@ -8,8 +8,7 @@ import javafx.util.Pair;
 import org.jxmapviewer.viewer.DefaultWaypoint;
 import org.jxmapviewer.viewer.GeoPosition;
 
-
-import SARL.agents.TrafficLightStatus;
+import SARL.agents.utils.TrafficLightStatus;
 
 public class TrafficSignalWaypoint  extends DefaultWaypoint {
 	 private String name;

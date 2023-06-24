@@ -1,9 +1,9 @@
 package SARL.agents;
 
 import SARL.agents.capacities.GeoLocationCapacity;
-import SARL.agents.geolocation.GeoLocationService;
-import SARL.agents.geolocation.mapbox.Node;
-import SARL.agents.geolocation.mapbox.RoutingService;
+import SARL.agents.utils.geolocation.GeoLocationService;
+import SARL.agents.utils.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.RoutingService;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
@@ -14,12 +14,14 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import javafx.util.Pair;
 import org.eclipse.xtext.xbase.lib.Exceptions;
+import org.eclipse.xtext.xbase.lib.Pure;
 
 @SarlSpecification("0.12")
 @SarlElementType(22)
 @SuppressWarnings("all")
 public class GetLocationSkill extends Skill implements GeoLocationCapacity {
   @Override
+  @Pure
   public Node getCurrentLocation() {
     try {
       Optional<Pair<Double, Double>> optionalLocation = GeoLocationService.getCurrentLocationAsPair();
@@ -37,6 +39,7 @@ public class GetLocationSkill extends Skill implements GeoLocationCapacity {
   }
   
   @Override
+  @Pure
   public List<Node> getRouteToDestination(final Node source, final Node destination) {
     try {
       List<Node> path = RoutingService.getRoute(source, destination);
@@ -47,9 +50,21 @@ public class GetLocationSkill extends Skill implements GeoLocationCapacity {
   }
   
   @Override
+  @Pure
   public List<Node> getRouteToDestination(final Node source, final Node viaNode, final Node destination) {
     try {
       List<Node> path = RoutingService.getRoute(source, viaNode, destination);
+      return path;
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
+  }
+  
+  @Override
+  @Pure
+  public Pair<List<Node>, List<Node>> getRouteToDestinationAsPair(final Node source, final Node viaNode, final Node destination) {
+    try {
+      Pair<List<Node>, List<Node>> path = RoutingService.getRouteAsPair(source, viaNode, destination);
       return path;
     } catch (Throwable _e) {
       throw Exceptions.sneakyThrow(_e);

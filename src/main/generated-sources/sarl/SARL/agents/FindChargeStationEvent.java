@@ -1,6 +1,6 @@
 package SARL.agents;
 
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.annotation.SyntheticMember;
@@ -12,13 +12,13 @@ import org.eclipse.xtext.xbase.lib.util.ToStringBuilder;
 @SarlElementType(15)
 @SuppressWarnings("all")
 public class FindChargeStationEvent extends Event {
-  public final int currentBatteryLevel;
+  public final long currentBatteryLevel;
   
   public final Node currentLocation;
   
   public final Node destination;
   
-  public FindChargeStationEvent(final Node currentLocation, final Node destination, final int currentBatteryLevel) {
+  public FindChargeStationEvent(final Node currentLocation, final Node destination, final long currentBatteryLevel) {
     this.currentLocation = currentLocation;
     this.destination = destination;
     this.currentBatteryLevel = currentBatteryLevel;
@@ -46,7 +46,7 @@ public class FindChargeStationEvent extends Event {
   public int hashCode() {
     int result = super.hashCode();
     final int prime = 31;
-    result = prime * result + Integer.hashCode(this.currentBatteryLevel);
+    result = prime * result + Long.hashCode(this.currentBatteryLevel);
     return result;
   }
   
@@ -63,5 +63,5 @@ public class FindChargeStationEvent extends Event {
   }
   
   @SyntheticMember
-  private static final long serialVersionUID = 4067555663L;
+  private static final long serialVersionUID = 2300769749L;
 }

@@ -6,29 +6,41 @@ import SARL.agents.capacities.TrafficSignalManagementCapacity
 import SARL.agents.TimeStep
 import SARL.agents.VehicleAgent
 import io.sarl.core.Logging
-import static SARL.agents.geolocation.mapbox.NodeUtils.getNodesBetween;
+import static SARL.agents.utils.geolocation.mapbox.NodeUtils.getNodesBetween;
 import io.sarl.core.Initialize
 import io.sarl.core.DefaultContextInteractions
 import io.sarl.core.Schedules
 import SARL.agents.capacities.ChargingCapacity
 import SARL.agents.capacities.GeoLocationCapacity
-import SARL.agents.geolocation.mapbox.NodeUtils
+import SARL.agents.utils.geolocation.mapbox.NodeUtils
+import SARL.agents.utils.TrafficLight
+import java.util.ArrayList
+import java.util.stream.Stream
+import java.util.stream.Collectors
+import java.util.UUID
+import io.sarl.lang.core.Address
+import java.util.Map
+import java.util.HashMap
+import io.sarl.core.Behaviors
 
 // Behavior
 behavior VehicleAgentBehavior {
-	uses Logging, MovingCapacity, ChargingCapacity, DefaultContextInteractions
+	uses Logging, MovingCapacity, ChargingCapacity, DefaultContextInteractions, Behaviors
 
+	var timeStep : long
+	var chargeNeeded : long
+
+	var closestStationID : Address;
 	val owner : VehicleAgent
 	var currentNodeIndex : int = 0
 	var currentPathIndex : int = 0
 	var distanceBetweenNodes : double;
+	var lookingForCharging : boolean = false;
 
 	new (owner : VehicleAgent) {
 		super(owner)
 		this.owner = owner
 	}
-
-	
 
 	// React to the TimeStep event
 	on TimeStep {
@@ -38,33 +50,91 @@ behavior VehicleAgentBehavior {
 			info("charging ...")
 			updateBatteryLevel(50);
 			goCharge();
-			emit(new FullPathUpdateEvent(owner.agentName, owner.fullPath));
-			info("charged !")
+			lookingForCharging = true
+			var fullPathToPaint = Stream.concat(owner.fromSourceToDestinationViaStationPair.getKey().stream(),
+				owner.fromSourceToDestinationViaStationPair.getValue().stream()).collect(Collectors.toList());
+			emit(new FullPathUpdateEvent(owner.agentName, fullPathToPaint));
+		}
+		if (currentNodeIndex >= owner.subPath.size && currentPathIndex < owner.fullPath.size - 1) {
+			// Fetch subPath between two nodes
+			owner.subPath = getNodesBetween(owner.fullPath.get(currentPathIndex),
+				owner.fullPath.get(currentPathIndex + 1), distanceBetweenNodes)
+			currentNodeIndex = 0
+			currentPathIndex++
+		}
+		if (currentNodeIndex < owner.subPath.size) {
+			// Move to the next node in the subPath
+			owner.status = VehicleStatus.moving
+			move(owner.subPath.get(currentNodeIndex))
+			currentNodeIndex++
 		} else {
-			if (currentNodeIndex >= owner.subPath.size && currentPathIndex < owner.fullPath.size - 1) {
-				// Fetch subPath between two nodes
-				owner.subPath = getNodesBetween(owner.fullPath.get(currentPathIndex),
-					owner.fullPath.get(currentPathIndex + 1), distanceBetweenNodes)
-				currentNodeIndex = 0
-				currentPathIndex++
-			}
-			if (currentNodeIndex < owner.subPath.size) {
-				// Move to the next node in the subPath
-				owner.status = VehiculeStatus.moving
-				move(owner.subPath.get(currentNodeIndex))
-				currentNodeIndex++
+			if (lookingForCharging) {
+				info("The agent has reached the charging Station.")
+				waiting("charging");
+				emit(new ChargeRequestEvent(owner.batteryLevel, owner.batteryCapacity, owner.batteryChargeCapacity)) [
+					it == closestStationID
+				]
+				
+				
 			} else {
 				info("The agent has reached its destination.")
 				stop()
+				unregisterBehavior(this)
 			}
+
 		}
+
+	}
+	on ChargeCompletedEvent {
+		currentNodeIndex = 0
+		currentPathIndex = 0
+		lookingForCharging = false
+	}
+
+	on ChargeApprovedEvent {
+		info("Charge approved for " + occurrence.chargeNeeded + " kWh. Total price: " + occurrence.totalPrice + " Dh.");
+		this.chargeNeeded = occurrence.chargeNeeded
+		charging()
+		registerBehavior(new ChargingBehavior(owner, occurrence.chargeNeeded))
+
 	}
 
 	on chargeStationFoundEvent {
-		info("updated closest " + occurrence.closestStation + " - " + occurrence.stationAgentName)
+		info("updated closest " + occurrence.closestStation + " - " + occurrence.stationAdressAndNamePair.getValue)
+		closestStationID = occurrence.stationAdressAndNamePair.getKey()
 		owner.chargeStationNode = occurrence.closestStation;
 	}
+	
+	
 
+}
+
+behavior ChargingBehavior {
+	uses Logging, Behaviors, MovingCapacity, DefaultContextInteractions
+
+	val owner : VehicleAgent
+	var chargeNeeded : long
+
+	new (owner : VehicleAgent, chargeNeeded : long) {
+		super(owner)
+		this.owner = owner
+		this.chargeNeeded = chargeNeeded
+	}
+
+	on TimeStep {
+		var chargeToAdd : long = Math.min(occurrence.step * owner.batteryChargeCapacity, chargeNeeded)
+		owner.batteryLevel = owner.batteryLevel + chargeToAdd
+		chargeNeeded = chargeNeeded - chargeToAdd
+		info("Charging: " + (owner.batteryLevel * 100 / owner.batteryCapacity) + "%")
+
+		// If the vehicle is fully charged, stop the charging behavior
+		if (chargeNeeded <= 0 || owner.batteryLevel >= owner.batteryCapacity) {
+			info("Charging complete for vehicle " + owner.agentName + "!")
+			owner.fullPath = owner.fromSourceToDestinationViaStationPair.getValue()	
+			emit(new ChargeCompletedEvent())[it.ID == owner.ID]		
+			unregisterBehavior(this)
+		}
+	}
 }
 
 behavior TrafficSignalBehavior {
@@ -99,9 +169,10 @@ behavior EnvironmentBehavior {
 		this.owner = owner;
 	}
 
-	on VehicleAgentInitEvent{
+	on VehicleAgentInitEvent {
 		owner.map.OnVehicleAgentInit(occurrence.initial_location_node, occurrence.agentName, occurrence.path)
 	}
+
 	// event triggered when the vehicle agent change its current position (node)
 	on VehicleAgentUpdateEvent {
 		owner.map.onVehicleAgentUpdate(occurrence.current_location_node, occurrence.agentName)
@@ -133,7 +204,7 @@ behavior EnvironmentBehavior {
 
 	on ChargeStationInitEvent {
 		owner.chargeStationNodes.add(occurrence.location);
-		owner.map.onChargeStationIniti(occurrence.location, occurrence.agentName);
+		owner.map.onChargeStationIniti(occurrence.location, occurrence.agentName, occurrence.source);
 	}
 
 	on FullPathUpdateEvent {
@@ -149,6 +220,31 @@ behavior EnvironmentBehavior {
 		emit(new chargeStationFoundEvent(closestNode, owner.map.chargeStationNodes.get(closestNode))) [
 			it == occurrence.source
 		]; 	// to send back the event to the sender
+	}
+
+}
+
+behavior ChargeStationBehvior {
+	uses DefaultContextInteractions, Logging;
+
+	val owner : ChargeStationAgent
+	var priceInDhPerKwh : double
+	var chargingVehicles : Map<Address, Integer> = new HashMap() // Key is the vehicle's agentName, value is the amount of charge it needs
+
+	new (owner : ChargeStationAgent) {
+		super(owner)
+		this.owner = owner
+		this.priceInDhPerKwh = owner.priceInDhPerKwh
+	}
+
+	on ChargeRequestEvent {
+		var neededCharge = occurrence.batteryCapacity - occurrence.currentBatteryLevel; // How much charge the vehicle needs
+		var totalPrice = neededCharge * this.priceInDhPerKwh; // The total price of the charging
+		info("Charge requested: " + neededCharge + " kWh. Total price: " + totalPrice + " Dh.");
+
+		// Add the vehicle to the charging map
+		emit(new ChargeApprovedEvent(totalPrice, neededCharge))[it == occurrence.source];
+
 	}
 
 }

@@ -16,13 +16,15 @@ import io.sarl.core.ParticipantJoined
 import io.sarl.core.ParticipantLeft
 import io.sarl.core.SpaceCreated
 import io.sarl.core.SpaceDestroyed
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import org.eclipse.xtend.lib.annotations.Accessors
 import java.util.List
 import java.util.Map
 import io.sarl.lang.core.Agent
 import io.sarl.core.Behaviors
 import io.sarl.core.DefaultContextInteractions
+import SARL.agents.utils.TrafficLight
+import SARL.agents.utils.TrafficLightStatus
 
 /** 
  * @author ELHAJJOUT

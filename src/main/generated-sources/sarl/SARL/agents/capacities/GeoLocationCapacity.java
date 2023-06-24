@@ -1,13 +1,14 @@
 package SARL.agents.capacities;
 
 import SARL.agents.GetLocationSkill;
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.lang.annotation.SarlElementType;
 import io.sarl.lang.annotation.SarlSpecification;
 import io.sarl.lang.core.AgentTrait;
 import io.sarl.lang.core.Capacity;
 import io.sarl.lang.core.DefaultSkill;
 import java.util.List;
+import javafx.util.Pair;
 import org.eclipse.xtext.xbase.lib.Pure;
 
 @DefaultSkill(GetLocationSkill.class)
@@ -23,6 +24,9 @@ public interface GeoLocationCapacity extends Capacity {
   
   @Pure
   List<Node> getRouteToDestination(final Node source, final Node viaNode, final Node destination);
+  
+  @Pure
+  Pair<List<Node>, List<Node>> getRouteToDestinationAsPair(final Node source, final Node viaNode, final Node destination);
   
   /**
    * @ExcludeFromApidoc
@@ -54,6 +58,15 @@ public interface GeoLocationCapacity extends Capacity {
       try {
         ensureCallerInLocalThread();
         return this.capacity.getRouteToDestination(source, viaNode, destination);
+      } finally {
+        resetCallerInLocalThread();
+      }
+    }
+    
+    public Pair<List<Node>, List<Node>> getRouteToDestinationAsPair(final Node source, final Node viaNode, final Node destination) {
+      try {
+        ensureCallerInLocalThread();
+        return this.capacity.getRouteToDestinationAsPair(source, viaNode, destination);
       } finally {
         resetCallerInLocalThread();
       }

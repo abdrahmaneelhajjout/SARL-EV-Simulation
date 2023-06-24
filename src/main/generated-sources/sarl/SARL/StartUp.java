@@ -2,10 +2,10 @@ package SARL;
 
 import SARL.agents.ChargeStationAgent;
 import SARL.agents.EnvironmentAgent;
-import SARL.agents.TrafficLightStatus;
 import SARL.agents.VehicleAgent;
-import SARL.agents.geolocation.GeoLocationService;
-import SARL.agents.geolocation.mapbox.Node;
+import SARL.agents.utils.TrafficLightStatus;
+import SARL.agents.utils.geolocation.GeoLocationService;
+import SARL.agents.utils.geolocation.mapbox.Node;
 import io.sarl.bootstrap.SRE;
 import io.sarl.bootstrap.SREBootstrap;
 import io.sarl.lang.annotation.SarlElementType;
@@ -25,6 +25,7 @@ public class StartUp {
     try {
       Node marrakech_node = new Node(31.648711, (-8.013689));
       double radiusInKm = 1.5;
+      double priceInDhPerKwh = 1.5d;
       SREBootstrap bootstrap = SRE.getBootstrap();
       Pair<Node, Node> location_pair1 = GeoLocationService.getRandomStartAndDestination(marrakech_node, radiusInKm);
       Pair<Node, Node> location_pair2 = GeoLocationService.getRandomStartAndDestination(marrakech_node, radiusInKm);
@@ -36,17 +37,9 @@ public class StartUp {
       Node randomNode2 = GeoLocationService.getRandomNodeFromWayWithinRadius(marrakech_node, radiusInKm).convertNode();
       Node randomNode3 = GeoLocationService.getRandomNodeFromWayWithinRadius(marrakech_node, radiusInKm).convertNode();
       Node randomNode4 = GeoLocationService.getRandomNodeFromWayWithinRadius(marrakech_node, radiusInKm).convertNode();
-      bootstrap.startAgent(ChargeStationAgent.class, "station1", randomNode);
-      bootstrap.startAgent(ChargeStationAgent.class, "station2", randomNode2);
-      bootstrap.startAgent(ChargeStationAgent.class, "station3", randomNode3);
-      bootstrap.startAgent(ChargeStationAgent.class, "station4", randomNode4);
-      Thread.sleep(5000);
+      bootstrap.startAgent(ChargeStationAgent.class, "station1", randomNode, Double.valueOf(priceInDhPerKwh));
       Double _double = new Double(40);
       bootstrap.startAgent(VehicleAgent.class, "agent1", location_pair1, _double);
-      Double _double_1 = new Double(20);
-      bootstrap.startAgent(VehicleAgent.class, "agent2", location_pair2, _double_1);
-      Double _double_2 = new Double(20);
-      bootstrap.startAgent(VehicleAgent.class, "agent3", location_pair3, _double_2);
       Map<TrafficLightStatus, Long> trafficMap = new HashMap<TrafficLightStatus, Long>();
       Long _long_1 = new Long(3000);
       trafficMap.put(TrafficLightStatus.GREEN, _long_1);
